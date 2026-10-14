@@ -1,0 +1,29 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": ["basedpyright", "ruff", "!pyright", "!pylsp", "!ty", "..."]
+    },
+    "Rust": {
+      "enable_language_server": false
+    }
+  },
+  "lsp": {
+    "ruff": {
+      "binary": {
+        "path": "/run/current-system/sw/bin/nix",
+        "arguments": ["run", ".#ruff", "--", "server"]
+      }
+    },
+    "basedpyright": {
+      "binary": {
+        "path": "/run/current-system/sw/bin/nix",
+        "arguments": ["run", ".#basedpyright", "--", "--stdio"]
+      },
+      "settings": {
+        "python": {
+          "pythonPath": ".venv/bin/python"
+        }
+      }
+    }
+  }
+}

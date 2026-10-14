@@ -46,6 +46,13 @@
         in
         {
           default = { type = "app"; program = "${lint}/bin/thesis-lint"; };
+          # Language servers for editors. They come from nixpkgs, because the
+          # binaries that editors download do not run on NixOS.
+          ruff = { type = "app"; program = "${pkgs.ruff}/bin/ruff"; };
+          basedpyright = {
+            type = "app";
+            program = "${pkgs.basedpyright}/bin/basedpyright-langserver";
+          };
         });
     };
 }
