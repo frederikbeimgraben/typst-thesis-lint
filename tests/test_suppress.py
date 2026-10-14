@@ -70,3 +70,15 @@ def test_bib_comment(tmp_path: Path) -> None:
         tmp_path, "Text @a.\n", files={"main.bib": bib}, lint_toml='[rules."core.bib.urldate"]\n'
     )
     assert [d.rule_id for d in engine.run(ctx, {Needs.SOURCE}).diagnostics] == []
+
+
+def test_bib_comment_inside_an_entry(tmp_path: Path) -> None:
+    bib = (
+        "@online{a,\n  title = {T},\n"
+        + "  % ignore: core.bib.urldate; Abrufdatum unbekannt\n"
+        + "  url = {https://x},\n}\n"
+    )
+    ctx = make_context(
+        tmp_path, "Text @a.\n", files={"main.bib": bib}, lint_toml='[rules."core.bib.urldate"]\n'
+    )
+    assert [d.rule_id for d in engine.run(ctx, {Needs.SOURCE}).diagnostics] == []

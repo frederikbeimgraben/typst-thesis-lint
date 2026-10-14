@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 _SKIP_TYPES = frozenset({"comment", "preamble", "string"})
+_FIELD_COMMENT = re.compile(r"\s*%[^\n]*(?:\n|$)")
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,6 +142,11 @@ def _fields(  # noqa: PLR0913 - the parser state has many parts
     body: str, position: int, *, offset: int, text: str, entry: BibEntry, sink: Bibliography
 ) -> None:
     while position < len(body):
+        # A line comment between two fields, for example an ignore comment.
+        comment = _FIELD_COMMENT.match(body, position)
+        if comment is not None:
+            position = comment.end()
+            continue
         match = re.compile(r"\s*([\w:.+-]+)\s*=\s*").match(body, position)
         if match is None:
             if body[position:].strip(" \t\r\n,"):
