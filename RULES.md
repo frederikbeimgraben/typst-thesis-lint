@@ -1215,12 +1215,13 @@ The document has exactly 5 German and 5 English keywords.
 
 ### `sat.layout.chapter-pagebreak`
 
-Each level-1 heading and each list starts on a new page.
+Each numbered level-1 heading and the contents page start on a new page.
 
 - Default severity: error
 - Input: pdf
 - Parameter `h1-pt`: `16.0`
 - Parameter `tolerance-pt`: `0.3`
+- Parameter `new-page-titles`: `('Inhalt',)`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Gliederung des Textes: „muss mit einer neuen Seite begonnen werden“
 
 ### `sat.layout.font-sizes`
@@ -1234,7 +1235,7 @@ The font sizes of the template: title 24, text 12, headings 16/14/12, lists 10 p
 - Parameter `h1-pt`: `16.0`
 - Parameter `h2-pt`: `14.0`
 - Parameter `lists-pt`: `10.0`
-- Parameter `header-pt`: `12.0`
+- Parameter `header-pt`: `10.0`
 - Parameter `footer-pt`: `10.0`
 - Parameter `footnote-pt`: `10.0`
 - Parameter `abstract-pt`: `10.0`
@@ -1244,6 +1245,7 @@ The font sizes of the template: title 24, text 12, headings 16/14/12, lists 10 p
 - Parameter `exempt-fonts`: `('NewCMMath', 'NewCM', 'DejaVuSansMono', 'DejaVuMath')`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Zeichenformate: „Titel: 24 Punkte; Standardtext: 12 Punkte; Überschrift 1: 16 Punkte“
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Zeichenformate: „Kopfzeilen: 12 Punkte; Fußzeilen: 10 Punkte; Fußnoten: 10 Punkte“
+- Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Formatvorlage Kopfzeile: „10 Punkte, zentriert (so rendert die Vorlage; Projektentscheidung)“
 
 ### `sat.layout.fonts`
 
@@ -1310,6 +1312,9 @@ A4 portrait. The text is inside the margins (left 4, right 3, top 3, bottom 2 cm
 - Parameter `page-width-cm`: `21.0`
 - Parameter `page-height-cm`: `29.7`
 - Parameter `tolerance-mm`: `1.0`
+- Parameter `abstract-page`: `1`
+- Parameter `abstract-left-cm`: `2.5`
+- Parameter `abstract-right-cm`: `2.0`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Seitenformat: „DinA4, hochkant“
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Seitenränder: „Linker Rand: 4 cm Rechter Rand: 3 cm Oberer Rand: 3 cm Unterer Rand: 2 cm“
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tests.helpers import make_context, messages, run_rule
-from tests.test_sat_pdf import example_pdf, transform, use_pdf
+from tests.test_sat_pdf import example_pdf, heading_line, text_line, transform, use_pdf
 from thesis_lint.model import Severity
 
 if TYPE_CHECKING:
@@ -77,10 +77,13 @@ def test_abstract_length_reports_a_short_abstract(tmp_path: Path) -> None:
 
 
 def test_abstract_length_reports_an_abstract_that_does_not_fit(tmp_path: Path) -> None:
+    keywords = text_line(1, "Keywords:")
+    contents = heading_line("Inhalt")
+
     def overflow(page: PdfPage, char: PdfChar) -> PdfChar | None:
-        if page.index == 1 and 170 < char.top < 700:
+        if page.index == 1 and keywords.top - 1 < char.top < 700:
             return None
-        if page.index == 2 and char.size > 15:
+        if page.index == contents.page and abs(char.top - contents.top) < 1.0:
             return None
         return char
 

@@ -75,6 +75,9 @@ class MarginsParams:
     page_width_cm: float = 21.0
     page_height_cm: float = 29.7
     tolerance_mm: float = 1.0
+    abstract_page: int = 1
+    abstract_left_cm: float = 2.5
+    abstract_right_cm: float = 2.0
 
 
 @rule(
@@ -111,9 +114,13 @@ def margins(ctx: Context, params: MarginsParams) -> Iterator[Finding]:
                     )
                 ),
             )
+        # The style "Abstract" of the Word template reaches into both margins.
+        abstract = page.index == params.abstract_page
+        left_cm = params.abstract_left_cm if abstract else params.left_cm
+        right_cm = params.abstract_right_cm if abstract else params.right_cm
         box = _Box(
-            left=params.left_cm * POINTS_PER_CM - tolerance,
-            right=page.width - params.right_cm * POINTS_PER_CM + tolerance,
+            left=left_cm * POINTS_PER_CM - tolerance,
+            right=page.width - right_cm * POINTS_PER_CM + tolerance,
             top=params.top_cm * POINTS_PER_CM - tolerance,
             bottom=page.height - params.bottom_cm * POINTS_PER_CM + tolerance,
         )
@@ -320,6 +327,11 @@ class FontSizesParams:
             "Zeichenformate",
             "Kopfzeilen: 12 Punkte; Fußzeilen: 10 Punkte; Fußnoten: 10 Punkte",
         ),
+        ref(
+            VORLAGE,
+            "Formatvorlage Kopfzeile",
+            "10 Punkte, zentriert (so rendert die Vorlage; Projektentscheidung)",
+        ),
     ],
     params=FontSizesParams(),
     needs=Needs.PDF,
@@ -483,8 +495,10 @@ def _footer_problems(
     footer_id = ctx.project.setting_text(params.footer_setting)
     if footer_id is not None and not line.text.startswith(footer_id.strip()):
         yield f"the footer must start with the footer-id {footer_id.strip()!r}"
-    if abs(line.x0 - params.left_cm * POINTS_PER_CM) > tolerance:
-        yield "the footer does not start at the left margin"
+    middle = (params.left_cm * POINTS_PER_CM + width - params.right_cm * POINTS_PER_CM) / 2
+    id_glyphs = line.ink[: len("".join((footer_id or "").split()))]
+    if id_glyphs and abs((id_glyphs[0].x0 + id_glyphs[-1].x1) / 2 - middle) > tolerance:
+        yield "the footer-id is not centered on the text block"
     if re.search(params.footer_pattern, line.text) is None:
         yield f"the footer {line.text!r} does not end with 'Seite X von Y'"
     elif abs(line.x1 - (width - params.right_cm * POINTS_PER_CM)) > tolerance:
@@ -570,11 +584,12 @@ class ChapterPagebreakParams:
 
     h1_pt: float = pdflines.H1_PT
     tolerance_pt: float = pdflines.SIZE_TOLERANCE_PT
+    new_page_titles: tuple[str, ...] = ("Inhalt",)
 
 
 @rule(
     "sat.layout.chapter-pagebreak",
-    summary="Each level-1 heading and each list starts on a new page.",
+    summary="Each numbered level-1 heading and the contents page start on a new page.",
     severity=Severity.ERROR,
     sources=[
         ref(
@@ -587,8 +602,18 @@ class ChapterPagebreakParams:
     needs=Needs.PDF,
 )
 def chapter_pagebreak(ctx: Context, params: ChapterPagebreakParams) -> Iterator[Finding]:
-    """Report level-1 headings with other body text above them on the same page."""
-    for heading in pdflines.chapter_headings(ctx.pdf, params.h1_pt, params.tolerance_pt):
+    """Report level-1 headings with other body text above them on the same page.
+
+    Only numbered chapters and the headings in `new_page_titles` must start a
+    new page. The other lists follow the contents page without a page break.
+    """
+    titles = {normalize(title) for title in params.new_page_titles}
+    headings = [
+        heading
+        for heading in pdflines.chapter_headings(ctx.pdf, params.h1_pt, params.tolerance_pt)
+        if heading.title != heading.text or normalize(heading.title) in titles
+    ]
+    for heading in headings:
         lines = pdflines.body_lines(pdflines.page_lines(ctx.pdf.pages[heading.page]))
         above = [line for line in lines if line.top < heading.top]
         if any(not line.has_size(params.h1_pt, params.tolerance_pt) for line in above):

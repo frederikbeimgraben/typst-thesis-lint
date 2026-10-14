@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from tests.helpers import make_context, messages, run_rule
-from tests.test_sat_pdf import example_pdf, transform, use_pdf
+from tests.test_sat_pdf import example_pdf, heading_line, transform, use_pdf
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -68,8 +68,11 @@ def test_directories_accepts_the_template(tmp_path: Path) -> None:
 
 
 def test_directories_reports_a_missing_list_and_layout(tmp_path: Path) -> None:
+    glossary = heading_line("Glossar")
+
     def drop_glossary(page: PdfPage, char: PdfChar) -> PdfChar | None:
-        return None if page.index == 7 and char.size > 15 else char
+        on_heading = page.index == glossary.page and abs(char.top - glossary.top) < 1.0
+        return None if on_heading and char.size > 15 else char
 
     files = {"metadata.typ": '#let settings = (layout: "default")\n'}
     ctx = use_pdf(make_context(tmp_path, files=files), transform(example_pdf(), drop_glossary))

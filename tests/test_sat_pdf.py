@@ -52,8 +52,28 @@ def use_pdf(ctx: Context, pdf: PdfDocument) -> Context:
     return ctx
 
 
+def heading_line(title: str) -> pdflines.Line:
+    """Return the level-1 heading line of the example PDF with this title."""
+    line = pdflines.find_heading(example_pdf(), title)
+    assert line is not None, title
+    return line
+
+
+def heading_page(title: str) -> int:
+    """Return the page index of the level-1 heading with this title."""
+    return heading_line(title).page
+
+
+def text_line(index: int, prefix: str) -> pdflines.Line:
+    """Return the first line of a page of the example PDF that starts with `prefix`."""
+    lines = pdflines.page_lines(example_pdf().pages[index])
+    line = next((line for line in lines if line.text.startswith(prefix)), None)
+    assert line is not None, prefix
+    return line
+
+
 def test_lines_have_regions_and_spaces() -> None:
-    lines = pdflines.page_lines(example_pdf().pages[8])
+    lines = pdflines.page_lines(example_pdf().pages[heading_page("Einleitung")])
     regions = [line.region for line in lines]
     assert regions[:3] == [pdflines.Region.HEADER] * 3
     assert regions[-1] is pdflines.Region.FOOTER
@@ -63,7 +83,7 @@ def test_lines_have_regions_and_spaces() -> None:
 
 
 def test_join_lines_joins_hyphenated_words() -> None:
-    page = example_pdf().pages[8]
+    page = example_pdf().pages[heading_page("Einleitung")]
     body = [line for line in pdflines.page_lines(page) if line.region is pdflines.Region.BODY]
     text = pdflines.join_lines(body)
     assert "Medizinisch-Technischen Informatik erstellten" in text
