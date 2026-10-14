@@ -1,0 +1,6 @@
+# Zed compiles dev extensions with rustup. This file makes rustup install the
+# toolchain and the WebAssembly target that Zed needs.
+[toolchain]
+channel = "stable"
+profile = "minimal"
+targets = ["wasm32-wasip2"]

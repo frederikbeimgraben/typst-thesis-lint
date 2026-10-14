@@ -78,6 +78,13 @@ file. It does not compile the document.
 
 The directory `editors/zed` contains a Zed extension for the server.
 
+Zed compiles the extension with rustup. Rustup must have a default toolchain,
+because Zed runs `rustc` outside the extension directory:
+
+```sh
+rustup default stable
+```
+
 1. In Zed, run the command `zed: install dev extension`.
 2. Select the directory `editors/zed`.
 3. Make sure that `thesis-lint` is on the `PATH`, or set the command in the
