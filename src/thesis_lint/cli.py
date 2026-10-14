@@ -128,7 +128,6 @@ def _check(args: CheckArgs) -> int:
         sys.stdout.write(diagnostic.format(root) + "\n")
     for note in result.notes:
         sys.stderr.write(f"note: {note}\n")
-    sys.stderr.write(
-        f"{result.errors} error(s), {result.warnings} warning(s), profile {ctx.profile}\n"
-    )
+    counts = f"{result.errors} error(s), {result.warnings} warning(s)"
+    sys.stderr.write(f"{counts}, {result.suppressed} suppressed, profile {ctx.profile}\n")
     return EXIT_FINDINGS if result.errors else EXIT_OK

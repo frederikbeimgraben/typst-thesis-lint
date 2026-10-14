@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import TYPE_CHECKING
 
+from thesis_lint import suppress
 from thesis_lint.context import Context, PdfUnavailableError, Profile
 from thesis_lint.model import Diagnostic, Location, Needs, Severity
 from thesis_lint.pdf import CompileError
+from thesis_lint.registry import all_rules
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -26,6 +28,7 @@ class Result:
 
     diagnostics: tuple[Diagnostic, ...]
     notes: tuple[str, ...]
+    suppressed: int = 0
 
     @property
     def errors(self) -> int:
@@ -61,11 +64,24 @@ def run(ctx: Context, needs: Iterable[Needs]) -> Result:
     )
     # A failed compilation makes every PDF rule fail. Report it only once.
     unique = dict.fromkeys(diagnostics)
+    suppressions, comment_errors = suppress.parse(_comments(ctx), frozenset(all_rules()))
+    outcome = suppress.apply(unique, suppressions, frozenset(rule_id for rule_id, _ in runnable))
     ordered = sorted(
-        unique,
+        chain(outcome.kept, comment_errors, outcome.comment_findings),
         key=lambda d: (str(d.location.path), d.location.line, d.location.column, d.rule_id),
     )
-    return Result(diagnostics=tuple(ordered), notes=notes)
+    return Result(diagnostics=tuple(ordered), notes=notes, suppressed=outcome.suppressed)
+
+
+def _comments(ctx: Context) -> Iterator[suppress.Comment]:
+    """Yield the comments of all Typst and BibTeX files of the project."""
+    project = ctx.project
+    extra = (source for source in (project.settings_source, project.glossary_source) if source)
+    sources = {source.path.resolve(): source for source in chain(project.document.files, extra)}
+    yield from chain.from_iterable(suppress.typst_comments(source) for source in sources.values())
+    yield from chain.from_iterable(
+        suppress.bib_comments(ctx.root / name) for name in ctx.config.paths.bib
+    )
 
 
 def _input_errors(ctx: Context) -> Iterator[Diagnostic]:

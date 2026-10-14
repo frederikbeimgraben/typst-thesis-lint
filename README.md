@@ -57,6 +57,27 @@ Options:
 
 The exit code is 1 if the linter finds an error, and 2 if the config is not valid.
 
+### Suppress a finding
+
+Put a comment on the line of the finding or on the line before it:
+
+```typst
+Das macht man so. // ignore: core.style.man; Zitat aus der Quelle
+// ignore: core.number.spell-small,core.typo.dash; Normbezeichnung
+```
+
+In a `.bib` file, the comment starts with `%`. A comment suppresses the findings
+of the given rules that start on its own line or on the next line. The rule IDs and
+the reason after `;` are necessary. The suppressions apply in both profiles.
+
+The linter reports these problems of a comment:
+
+| Rule | Severity | Problem |
+| --- | --- | --- |
+| `ignore.syntax` | error | No rule IDs, no reason, or IDs not separated by commas. |
+| `ignore.unknown-rule` | error | The comment names a rule that does not exist. |
+| `ignore.unused` | warning | The comment suppresses nothing for a rule that ran. |
+
 ### Profiles
 
 The default profile is `draft`. In this profile, a submission rule reports a warning
