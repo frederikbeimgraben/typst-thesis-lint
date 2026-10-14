@@ -1,0 +1,75 @@
+[project]
+name = "typst-thesis-lint"
+version = "0.1.0"
+description = "Linter for scientific papers and theses written in Typst"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Frederik Beimgraben", email = "frederik@beimgraben.net" }]
+requires-python = ">=3.14"
+dependencies = [
+  "lsprotocol>=2025.0.0",
+  "pdfplumber>=0.11.10",
+  "pygls>=2.1.1",
+  "pypdf>=6.0",
+  "tree-sitter>=0.25",
+  "tree-sitter-typst",
+]
+
+[project.scripts]
+thesis-lint = "thesis_lint.cli:main"
+
+[dependency-groups]
+dev = ["basedpyright>=1.30", "pytest>=8.4", "ruff>=0.13"]
+
+[tool.uv.sources]
+tree-sitter-typst = { git = "https://github.com/uben0/tree-sitter-typst", rev = "46cf4ded12ee974a70bf8457263b67ad7ee0379d" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/thesis_lint"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "COM812",  # conflicts with the formatter
+  "D203",    # incompatible with D211
+  "D213",    # incompatible with D212
+  "RUF001",  # German typography uses „ “ – and other non-ASCII glyphs on purpose
+  "RUF002",
+  "RUF003",
+  "PLR2004", # thresholds are named rule parameters, literals in tests are fine
+  "CPY001",  # the MIT license applies to the whole repository
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+max-returns = 10
+max-branches = 16
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "D", "INP001", "ANN201"]
+
+[tool.basedpyright]
+pythonVersion = "3.14"
+include = ["src", "tests"]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "all"
+reportImplicitOverride = false
+reportUnusedCallResult = false
+reportMissingTypeStubs = false
+# Cycles that come only from imports under TYPE_CHECKING are harmless.
+reportImportCycles = false
