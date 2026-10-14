@@ -10,11 +10,24 @@
       pkgsFor = system: nixpkgs.legacyPackages.${system};
 
       # Tools that the linter needs at run time. uv installs the Python packages.
-      toolsFor = pkgs: [ pkgs.python314 pkgs.uv pkgs.typst pkgs.gcc pkgs.git ];
+      # hunspell and the German dictionary are for core.style.spelling.
+      toolsFor = pkgs: [
+        pkgs.python314
+        pkgs.uv
+        pkgs.typst
+        pkgs.gcc
+        pkgs.git
+        pkgs.hunspell
+        pkgs.hunspellDicts.de_DE
+        # pdftotext extracts the text of the source PDFs for the plagiarism check.
+        pkgs.poppler-utils
+      ];
 
       envFor = pkgs: {
         UV_PYTHON = "${pkgs.python314}/bin/python3.14";
         UV_PYTHON_DOWNLOADS = "never";
+        # hunspell finds the dictionary files in this directory.
+        DICPATH = "${pkgs.hunspellDicts.de_DE}/share/hunspell";
       };
     in
     {
@@ -39,6 +52,7 @@
             text = ''
               export UV_PYTHON="${env.UV_PYTHON}"
               export UV_PYTHON_DOWNLOADS=never
+              export DICPATH="${env.DICPATH}''${DICPATH:+:$DICPATH}"
               project="''${THESIS_LINT_PROJECT:-${self}}"
               exec uv run --quiet --frozen --project "$project" thesis-lint "$@"
             '';

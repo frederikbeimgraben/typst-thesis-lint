@@ -42,17 +42,23 @@ pattern = '(?i)(?<!\w)(?:ebd\.|ebenda\b|a\.\s?a\.\s?O\.|derselbe\b)'
 
 [rules."core.cite.ff"]
 pattern = '(?<![^\W\d_])ff\.'
+# VL02 Folie 128: "f." is always a warning.
+f-pattern = '(?<=\d)\s*f\.(?!\w)'
 
 [rules."core.cite.quote-share"]
 max-share = 0.10
 
 [rules."core.cite.cluster"]
-max-keys = 4
+# VL02 Folie 126: cite only the most important works.
+max-keys = 2
 
 [rules."core.cite.block-quote"]
 max-words = 40
 
 [rules."core.cite.secondary"]
+# VL02 Folien 119, 131: a secondary citation is not allowed. Use an ignore comment
+# only for a real exception.
+severity = "error"
 pattern = '(?i)\bzit(?:\.|iert)\s*nach\b'
 
 [rules."core.cite.reporting-unsourced"]
@@ -100,3 +106,25 @@ tool-labels = []
 
 [rules."core.plagiarism.ngram"]
 n = 6
+
+[rules."core.cite.page-required"]
+# VL02 Folie 128: a page is a must in the SAT course. For a citation of a whole
+# work, use an ignore comment.
+page-pattern = '(?<![^\W\d_])(?:S\.|pp?\.)\s*\d'
+
+[rules."core.cite.same-author-cluster"]
+
+[rules."core.cite.vgl-apa"]
+pattern = '(?i)(?<![^\W\d_])(?:vgl\.|siehe)\s*[(\[]?\s*$'
+
+[rules."core.cite.indirect-intro"]
+min-sentences = 2
+signals = [
+  "laut", "zufolge", "nach Ansicht", "nach Auffassung", "nach Meinung",
+  "beschreibt", "beschreiben", "berichtet", "berichten", "zeigt", "zeigen",
+  "untersucht", "untersuchen", "definiert", "definieren", "betont", "betonen",
+  "argumentiert", "argumentieren", "stellt fest", "stellen fest", "behauptet", "behaupten",
+  "schreibt", "schreiben", "fasst", "fassen", "fordert", "fordern", "verlangt", "verlangen",
+  "regelt", "regeln", "Studie", "Autor", "Autoren", "Autorin",
+  "Autorinnen",
+]

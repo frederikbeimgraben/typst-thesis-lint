@@ -52,7 +52,8 @@ patterns = [
 [rules."core.figure.numbering"]
 
 [rules."core.figure.own-figure"]
-patterns = ['\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle)']
+# VL02 Folie 114: also 'eigener Text'. The rule checks captions and notes in the text.
+patterns = ['\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle|Text)\b']
 
 [rules."core.figure.ref-before"]
 

@@ -21,6 +21,10 @@ template-phrases = [
 [rules."core.style.bold-underline"]
 styles = ["strong", "underline"]
 
+[rules."core.style.compound-hyphen"]
+language = "de_DE"
+dictionary = "dictionary.txt"
+
 [rules."core.style.emotional"]
 words = [
   "unglaublich*",
@@ -58,6 +62,9 @@ words = [
   "gewissermaßen",
   "sozusagen",
   "eigentlich",
+  "einigermaßen",
+  "schlichtweg",
+  "offenbar",
 ]
 
 [rules."core.style.first-person"]
@@ -136,6 +143,9 @@ words = [
   "die Menschheit",
   "schon immer",
 ]
+
+[rules."core.style.indem"]
+articles = ["das", "ein", "einem", "einer", "dem"]
 
 [rules."core.style.long-parens"]
 max-words = 12
@@ -231,15 +241,73 @@ exceptions = ["außer", "es sei denn", "Ausnahme*", "ausgenommen", "abgesehen"]
 run = 3
 
 [rules."core.style.sentence-length"]
-max-words = 25
+max-words = 20
 
 [rules."core.style.single-sentence-paragraph"]
 
 [rules."core.style.so-called"]
 words = ["sog.", "sogenannt*", "so genannt*"]
 
+[rules."core.style.sondern-comma"]
+
+[rules."core.style.spelling"]
+language = "de_DE"
+dictionary = "dictionary.txt"
+
 [rules."core.style.subclauses"]
 max-subclauses = 2
+
+[rules."core.style.tense"]
+allowed-chapters = ["Methoden", "Werkzeuge"]
+forms = [
+  "war",
+  "waren",
+  "wurde",
+  "wurden",
+  "hatte",
+  "hatten",
+  "zeigte",
+  "zeigten",
+  "ergab",
+  "ergaben",
+  "untersuchte",
+  "untersuchten",
+  "fand",
+  "fanden",
+  "gab",
+  "gaben",
+  "kam",
+  "kamen",
+  "lag",
+  "lagen",
+  "blieb",
+  "blieben",
+  "ging",
+  "gingen",
+  "stellte",
+  "stellten",
+  "führte",
+  "führten",
+  "nutzte",
+  "nutzten",
+  "verwendete",
+  "verwendeten",
+  "analysierte",
+  "analysierten",
+  "bestätigte",
+  "bestätigten",
+  "erfolgte",
+  "erfolgten",
+  "lieferte",
+  "lieferten",
+  "betrug",
+  "betrugen",
+  "konnte",
+  "konnten",
+  "musste",
+  "mussten",
+]
+passive = true
 
 [rules."core.style.vague"]
 words = [

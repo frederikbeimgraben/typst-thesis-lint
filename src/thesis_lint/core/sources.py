@@ -9,6 +9,8 @@ HW = "Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450)"
 LANGE = "Lange 2018, Fachtexte lesen - verstehen - wiedergeben"
 DFG = "DFG 2022, Leitlinien zur Sicherung guter wissenschaftlicher Praxis"
 USER = "Project decision"
+VL02 = "Steddin, SAT S2026, VL02 Grundbegriffe"
+FACTSHEET = "SAT FactSheet, 2025-03-19"
 
 
 def ref(source: str, page: str, quote: str = "") -> SourceRef:

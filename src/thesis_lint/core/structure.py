@@ -9,7 +9,7 @@ from itertools import chain, pairwise
 from typing import TYPE_CHECKING
 
 from thesis_lint.context import top_heading
-from thesis_lint.core.sources import BRINK, HW, VORLAGE, ref
+from thesis_lint.core.sources import BRINK, HW, VL02, VORLAGE, ref
 from thesis_lint.model import Severity
 from thesis_lint.registry import Finding, NoParams, rule
 from thesis_lint.text import sentences, word_count
@@ -1099,7 +1099,13 @@ class BalanceParams:
                 "dass die Gliederungshauptpunkte (ohne Einleitung und Schluss) in einem annähernd ",
                 "gleichen Textumfang bearbeitet werden",
             ),
-        )
+        ),
+        ref(VL02, "Folie 56", "Angewandte Methoden, Ergebnisse, Diskussion pro und kontra"),
+        ref(
+            VL02,
+            "Folie 57",
+            "Für Bearbeitung (Methoden und Ergebnisse): Eingrenzung der Fragestellung",
+        ),
     ],
     params=BalanceParams(),
 )
@@ -1149,18 +1155,6 @@ class ChapterParams:
 )
 def intro_no_figure(ctx: Context, params: ChapterParams) -> Iterator[Finding]:
     """Report figures, tables and images in the introduction."""
-    document = ctx.project.document
-    figures = (
-        (figure.source, figure.node)
-        for figure in document.figures
-        if chapter(figure.heading) == params.chapter
-    )
-    blocks = (
-        (call.source, call.node)
-        for call in document.calls
-        if call.name in {"table", "image"}
-        and chapter(heading_at(document, call.order)) == params.chapter
-    )
     return (
         Finding(
             concat(
@@ -1169,8 +1163,25 @@ def intro_no_figure(ctx: Context, params: ChapterParams) -> Iterator[Finding]:
             ),
             source.node_location(node),
         )
-        for source, node in chain(figures, blocks)
+        for source, node in chapter_figures(ctx.project.document, (params.chapter,))
     )
+
+
+def chapter_figures(
+    document: Document, chapters: tuple[str, ...]
+) -> Iterator[tuple[SourceFile, Node]]:
+    """Yield the figures and the bare table and image calls in the level-1 chapters `chapters`."""
+    figures = (
+        (figure.source, figure.node)
+        for figure in document.figures
+        if chapter(figure.heading) in chapters
+    )
+    blocks = (
+        (call.source, call.node)
+        for call in document.calls
+        if call.name in {"table", "image"} and chapter(heading_at(document, call.order)) in chapters
+    )
+    return chain(figures, blocks)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1272,6 +1283,130 @@ def appendix_referenced(ctx: Context, params: ChapterParams) -> Iterator[Finding
                 "Add a label in the appendix and refer to it with @label.",
             ),
             appendix.location,
+        )
+
+
+# Body sizes: the share of the background sections
+BODY_CHAPTERS = ("Einleitung", "Methoden", "Ergebnisse", "Diskussion", "Zusammenfassung")
+
+
+def section_words(heading: Heading) -> int:
+    """Return the number of words in the running text of a heading and its subsections."""
+    return sum(word_count(unit.text) for unit in prose_units(heading.all_units()))
+
+
+def descendants(heading: Heading) -> Iterator[Heading]:
+    """Yield all headings below a heading, in document order."""
+    for child in heading.children:
+        yield child
+        yield from descendants(child)
+
+
+@dataclass(frozen=True, slots=True)
+class BackgroundParams:
+    """Parameters of `core.section.background-share`."""
+
+    title_pattern: str = r"Grundlagen|Hintergrund|Stand der (?:Technik|Forschung|Wissenschaft)"
+    max_share: float = 0.15
+    body_chapters: tuple[str, ...] = BODY_CHAPTERS
+
+
+@rule(
+    "core.section.background-share",
+    summary="Background sections take at most 15 % of the words of the body.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(
+            VL02,
+            "Folie 91",
+            concat(
+                "sollte der Anteil dieser Wiederholungen nie mehr als 15% des ",
+                "Gesamtumfanges der Arbeit ausmachen",
+            ),
+        )
+    ],
+    params=BackgroundParams(),
+)
+def background_share(ctx: Context, params: BackgroundParams) -> Iterator[Finding]:
+    """Compare the words of the background sections with the words of the body chapters.
+
+    The title pattern is a regular expression that the rule searches in each
+    heading title. A matching section counts with all its subsections.
+    """
+    pattern = re.compile(params.title_pattern, re.IGNORECASE)
+    chapters = [
+        heading
+        for heading in ctx.project.document.top_headings
+        if heading.text in params.body_chapters
+    ]
+    background = [
+        heading
+        for heading in chain(chapters, *(descendants(h) for h in chapters))
+        if pattern.search(heading.text)
+        and not any(pattern.search(parent.text) for parent in heading.ancestors())
+    ]
+    total = sum(section_words(heading) for heading in chapters)
+    words_in_background = sum(section_words(heading) for heading in background)
+    if background and total and words_in_background / total > params.max_share:
+        yield Finding(
+            concat(
+                f"the background sections have {words_in_background} of {total} words ",
+                f"({words_in_background / total:.0%}). Use at most {params.max_share:.0%}. ",
+                "Cite the known facts instead of repeating them.",
+            ),
+            background[0].location,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class GuidingParams:
+    """Parameters of `core.intro.guiding-questions`.
+
+    The rule looks for words that start with one of `terms`. The match ignores the case.
+    """
+
+    chapter: str = "Einleitung"
+    terms: tuple[str, ...] = ("Leitfrage",)
+
+
+@rule(
+    "core.intro.guiding-questions",
+    summary="The introduction names the guiding questions ('Leitfragen').",
+    severity=Severity.WARNING,
+    sources=[
+        ref(
+            VL02,
+            "Folie 28",
+            concat(
+                "Zum Nachweis der Gültigkeit der Arbeitshypothese werden Leitfragen ",
+                "formuliert",
+            ),
+        ),
+        ref(
+            VL02,
+            "Folie 30",
+            "Anhand der Antworten auf die Leitfragen soll sich die Hypothese prüfen lassen.",
+        ),
+    ],
+    params=GuidingParams(),
+)
+def guiding_questions(ctx: Context, params: GuidingParams) -> Iterator[Finding]:
+    """Report an introduction without a word from `terms`."""
+    heading = ctx.heading_by_title(params.chapter)
+    if heading is None or not params.terms:
+        return
+    pattern = _word_pattern(params.terms, r"\w*")
+    texts = chain(
+        (unit.text for unit in prose_units(heading.all_units())),
+        (h.text for h in descendants(heading)),
+    )
+    if not any(pattern.search(text) for text in texts):
+        yield Finding(
+            concat(
+                f"the chapter {params.chapter!r} does not name the guiding questions. ",
+                f"State them, for example with the word {params.terms[0]!r}.",
+            ),
+            heading.location,
         )
 
 

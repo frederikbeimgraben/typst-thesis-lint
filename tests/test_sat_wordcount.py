@@ -105,3 +105,37 @@ def test_keywords_reports_wrong_counts(tmp_path: Path) -> None:
     assert len(found) == 2
     assert "keywords has 4 keywords" in found[0]
     assert "keywords-en is missing" in found[1]
+
+
+# sat.keywords-title
+
+
+def test_keywords_title_reports_repeated_title_words(tmp_path: Path) -> None:
+    files = settings(
+        "title: [KI-Agenten für die Gebrauchsanweisung]",
+        'keywords: "Gebrauchsanweisung, Medizinprodukt, Validierung"',
+        'keywords-en: ("instructions for use", "ki-agenten")',
+    )
+    found = messages(run_rule(make_context(tmp_path, files=files), "sat.keywords-title"))
+    assert len(found) == 2
+    assert "'Gebrauchsanweisung' in keywords" in found[0]
+    assert "'ki-agenten' in keywords-en" in found[1]
+
+
+def test_keywords_title_accepts_new_words(tmp_path: Path) -> None:
+    files = settings(
+        "title: [KI-Agenten für Medizinprodukte]",
+        'keywords: "Validierung, Agentur, Produkt"',
+        'keywords-en: "medical devices, agents"',
+    )
+    assert run_rule(make_context(tmp_path, files=files), "sat.keywords-title") == []
+
+
+def test_keywords_title_matches_german_inflection(tmp_path: Path) -> None:
+    files = settings(
+        "title: [Risiken der KI-Agenten für Medizinprodukte]",
+        'keywords: "Medizinprodukt, Agent, Risiko, KI-Agent"',
+        'keywords-en: "agents for medical devices"',
+    )
+    found = messages(run_rule(make_context(tmp_path, files=files), "sat.keywords-title"))
+    assert [message.split("'")[1] for message in found] == ["Medizinprodukt", "Agent", "KI-Agent"]

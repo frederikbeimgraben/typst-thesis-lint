@@ -93,6 +93,12 @@ count = 5
 german-setting = "keywords"
 english-setting = "keywords-en"
 
+[rules."sat.keywords-title"]
+german-setting = "keywords"
+english-setting = "keywords-en"
+title-setting = "title"
+endings = ["e", "en", "n", "s", "es", "er", "ern"]
+
 [rules."sat.layout.chapter-pagebreak"]
 h1-pt = 16.0
 tolerance-pt = 0.3

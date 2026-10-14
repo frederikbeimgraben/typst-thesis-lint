@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import dataclasses
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import SAT, VORLAGE, ref
+from thesis_lint.core.sources import SAT, VL02, VORLAGE, ref
 from thesis_lint.model import Needs, Severity
 from thesis_lint.packs.sat_meti import pdflines
 from thesis_lint.packs.sat_meti.support import main_location, setting_location
@@ -242,7 +243,9 @@ class KeywordsParams:
             SAT,
             "S. 9",
             "Es müssen 5 sogenannte Keywords in deutscher und in englischer Sprache benannt werden",
-        )
+        ),
+        ref(VL02, "Folie 56", "Deckblatt: ... Abstract, Keywords"),
+        ref(VL02, "Folie 68", "Möglichst englische Keywords verwenden oder Übersetzungen angeben"),
     ],
     params=KeywordsParams(),
 )
@@ -269,6 +272,78 @@ def keywords(ctx: Context, params: KeywordsParams) -> Iterator[Finding]:
                 f"{name} has {len(found)} keywords. Use exactly {params.count} {language} keywords",
                 setting_location(ctx, name),
             )
+
+
+@dataclass(frozen=True, slots=True)
+class KeywordsTitleParams:
+    """Parameters of `sat.keywords-title`.
+
+    A keyword word matches a title word if one word is the other word plus one
+    of `endings`. The check ignores case. All words of a keyword with more than
+    one word must match consecutive title words in the same order.
+    """
+
+    german_setting: str = "keywords"
+    english_setting: str = "keywords-en"
+    title_setting: str = "title"
+    endings: tuple[str, ...] = ("e", "en", "n", "s", "es", "er", "ern")
+
+
+@rule(
+    "sat.keywords-title",
+    summary="No keyword repeats a word of the title.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(
+            VL02,
+            "Folie 68",
+            "Keywords sollen nicht die Begriffe aus dem Titel wiederholen",
+        )
+    ],
+    params=KeywordsTitleParams(),
+)
+def keywords_title(ctx: Context, params: KeywordsTitleParams) -> Iterator[Finding]:
+    """Report German and English keywords that occur in the title, also in an inflected form."""
+    title = ctx.project.setting_text(params.title_setting)
+    if not title:
+        return
+    title_words = _WORD.findall(title)
+    for name in (params.german_setting, params.english_setting):
+        valued = ctx.project.settings.get(name)
+        found = _keywords(None if valued is None else valued.value) or []
+        yield from (
+            Finding(
+                " ".join(
+                    (
+                        f"the keyword {keyword!r} in {name} repeats a word of the title.",
+                        "Use a keyword that adds new search information",
+                    )
+                ),
+                setting_location(ctx, name),
+            )
+            for keyword in found
+            if _repeats(_WORD.findall(keyword), title_words, params.endings)
+        )
+
+
+_WORD = re.compile(r"[^\W_]+")
+
+
+def _same_word(first: str, second: str, endings: tuple[str, ...]) -> bool:
+    """Return True if one word is the other word plus nothing or one of `endings`."""
+    short, long = sorted((first.casefold(), second.casefold()), key=len)
+    return long.startswith(short) and long[len(short) :] in {"", *endings}
+
+
+def _repeats(words: list[str], title_words: list[str], endings: tuple[str, ...]) -> bool:
+    """Return True if `words` match consecutive words of the title."""
+    return bool(words) and any(
+        all(
+            _same_word(word, title_word, endings)
+            for word, title_word in zip(words, title_words[start:], strict=False)
+        )
+        for start in range(len(title_words) - len(words) + 1)
+    )
 
 
 def _keywords(value: Value) -> list[str] | None:

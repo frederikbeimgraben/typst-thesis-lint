@@ -382,3 +382,57 @@ def test_list_punctuation_handles_nested_lists(tmp_path: Path) -> None:
 def test_list_consistent_counts_only_periods(tmp_path: Path) -> None:
     body = "- Ersatz oder Ergänzung?\n- Stichwort\n- Noch ein Stichwort\n"
     assert count(tmp_path, "core.list.consistent", body) == 0
+
+
+# core.section.background-share
+
+FILLER = "Dieser Satz hat genau sechs Wörter. "
+
+
+def test_background_share_reports_large_background(tmp_path: Path) -> None:
+    body = (
+        f"= Einleitung\n\n== Stand der Technik\n\n{FILLER * 4}\n\n== Ziel\n\n{FILLER}\n\n"
+        f"= Methoden\n\n{FILLER * 2}\n"
+    )
+    findings = run_rule(make_context(tmp_path, body), "core.section.background-share")
+    assert len(findings) == 1
+    assert "57%" in findings[0].message
+
+
+def test_background_share_accepts_small_background(tmp_path: Path) -> None:
+    body = (
+        f"= Einleitung\n\n== Grundlagen\n\n{FILLER}\n\n== Ziel\n\n{FILLER * 5}\n\n"
+        f"= Ergebnisse\n\n{FILLER * 4}\n"
+    )
+    assert count(tmp_path, "core.section.background-share", body) == 0
+
+
+def test_background_share_ignores_chapters_outside_the_body(tmp_path: Path) -> None:
+    body = f"= Einleitung\n\n{FILLER * 9}\n\n= Anhang\n\n== Hintergrund\n\n{FILLER * 9}\n"
+    assert count(tmp_path, "core.section.background-share", body) == 0
+
+
+# core.intro.guiding-questions
+
+
+def test_guiding_questions_reports_missing_questions(tmp_path: Path) -> None:
+    body = "= Einleitung\n\nDie Arbeit prüft eine Hypothese.\n\n= Methoden\n\nLeitfragen.\n"
+    findings = run_rule(make_context(tmp_path, body), "core.intro.guiding-questions")
+    assert len(findings) == 1
+    assert "guiding questions" in findings[0].message
+
+
+def test_guiding_questions_accepts_the_word_in_the_text(tmp_path: Path) -> None:
+    body = "= Einleitung\n\nDrei Leitfragen führen durch die Arbeit.\n"
+    assert count(tmp_path, "core.intro.guiding-questions", body) == 0
+
+
+def test_guiding_questions_accepts_a_section_title(tmp_path: Path) -> None:
+    body = "= Einleitung\n\n== Hypothese und Leitfragen\n\nText.\n"
+    assert count(tmp_path, "core.intro.guiding-questions", body) == 0
+
+
+def test_guiding_questions_uses_the_terms_parameter(tmp_path: Path) -> None:
+    body = "= Einleitung\n\nDie Forschungsfrage lautet so.\n"
+    ctx = make_context(tmp_path, body)
+    assert run_rule(ctx, "core.intro.guiding-questions", terms=["Forschungsfrage"]) == []

@@ -78,6 +78,24 @@ The linter reports these problems of a comment:
 | `ignore.unknown-rule` | error | The comment names a rule that does not exist. |
 | `ignore.unused` | warning | The comment suppresses nothing for a rule that ran. |
 
+### Project dictionary
+
+The spelling rules use hunspell and the file `dictionary.txt` in the project root.
+The file is optional. It has the format of a hunspell personal dictionary
+(`man 5 hunspell`). Write one entry on each line:
+
+```text
+# A line that starts with # is a comment.
+Steddin
+Validierung/Hoffnung
+```
+
+A line with one word adds the word. The check of this word ignores case. A line
+`word/model` adds the word with the affixes of the model word. Thus
+`Validierung/Hoffnung` also adds `Validierungen`. The model word must be a root
+word of the hunspell dictionary. If hunspell does not accept the forms, use a
+different model word.
+
 ### Profiles
 
 The default profile is `draft`. In this profile, a submission rule reports a warning

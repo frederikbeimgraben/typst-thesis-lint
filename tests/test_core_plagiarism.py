@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.helpers import make_context, run_rule
-from thesis_lint.core.plagiarism import Word, matched_runs, normalize
+from thesis_lint.core.plagiarism import NgramParams, Word, compact, matched_runs
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -29,15 +29,28 @@ def make_source_pdf(tmp_path: Path, key: str, text: str) -> None:
     )
 
 
-def test_normalize_joins_hyphenated_words() -> None:
-    assert normalize("Eine unab-\nhängige Prüfung, 2026!") == ["eine", "unabhängige", "prüfung"]
+def test_compact_joins_hyphenated_words_and_ligatures() -> None:
+    assert compact("Eine unab-\nhängige Prüfung, 2026!") == "eineunabhängigeprüfung2026"
+    assert compact("speci\ufb01c") == "specific"
 
 
-def test_matched_runs_merges_overlapping_ngrams() -> None:
-    tokens = list("xabcdefgy")
+def test_compact_ignores_missing_spaces_of_the_source() -> None:
+    assert compact("Forlanguagegenerationtasks,wefind") == compact(
+        "For language generation tasks, we find"
+    )
+
+
+def test_matched_runs_merges_overlapping_windows() -> None:
+    tokens = ["x", "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "y"]
     words = [Word(token, index, index + 1) for index, token in enumerate(tokens)]
-    index = {tuple("abcdef"): "k1", tuple("bcdefg"): "k1"}
-    assert list(matched_runs(words, index, 6)) == [(1, 7, "k1")]
+    sources = {"k1": "lorem" + "".join(tokens[1:8]) + "ipsum"}
+    assert list(matched_runs(words, sources, NgramParams(n=6, min_chars=10))) == [(1, 7, "k1")]
+
+
+def test_matched_runs_skips_short_windows() -> None:
+    tokens = ["a", "b", "c", "d", "e", "f"]
+    words = [Word(token, index, index + 1) for index, token in enumerate(tokens)]
+    assert list(matched_runs(words, {"k1": "abcdef"}, NgramParams(n=6, min_chars=25))) == []
 
 
 def test_ngram_reports_unquoted_copy(tmp_path: Path) -> None:

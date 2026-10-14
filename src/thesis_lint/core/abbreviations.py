@@ -23,7 +23,7 @@ from thesis_lint.core.prose import (
     unit_sentences,
     word_regex,
 )
-from thesis_lint.core.sources import HW, LANGE, USER, VORLAGE, ref
+from thesis_lint.core.sources import HW, LANGE, USER, VL02, VORLAGE, ref
 from thesis_lint.model import Severity
 from thesis_lint.registry import Finding, NoParams, rule
 
@@ -166,10 +166,16 @@ def _covered(index: int, spans: list[tuple[int, int]]) -> bool:
     severity=Severity.ERROR,
     sources=[
         ref(
+            VL02,
+            "Folie 97",
+            "Erklären Sie die Bedeutung von Abkürzungen, bevor diese (...) verwendet werden",
+        ),
+        ref(VL02, "Folie 100", "zusätzlich soll ein Abkürzungsverzeichnis verwendet werden"),
+        ref(
             VORLAGE,
             "Abkürzungen",
             "Abkürzungen sind (...) zu benennen und im Abkürzungsverzeichnis aufzuführen.",
-        )
+        ),
     ],
     params=GlossaryParams(),
 )
@@ -218,6 +224,11 @@ def _function_for(form: RawForm, matched: str) -> str:
             "so kann dies später nur noch als MPG bezeichnet werden.",
         ),
         ref(HW, "S. 199", "Abkürzungen durchgängig verwenden"),
+        ref(
+            VL02,
+            "Folie 100",
+            "Erklären Sie die Bedeutung von Abkürzungen, bevor diese verwendet werden",
+        ),
     ],
 )
 def raw_form(ctx: Context, _params: NoParams) -> Iterator[Finding]:
@@ -367,6 +378,7 @@ def sentence_start(ctx: Context, params: SentenceStartParams) -> Iterator[Findin
             "S. 112",
             "zentrale Fachbegriffe beizubehalten und nicht durch Wörter (...) zu ersetzen",
         ),
+        ref(VL02, "Folie 100", "Achten Sie auf die einheitliche Verwendung von Fachbegriffen"),
     ],
 )
 def raw_term(ctx: Context, _params: NoParams) -> Iterator[Finding]:

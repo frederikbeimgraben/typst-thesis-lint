@@ -58,6 +58,26 @@ def test_own_figure_accepts_plain_caption(tmp_path: Path) -> None:
     assert count(tmp_path, "core.figure.own-figure", figure()) == 0
 
 
+def test_own_figure_reports_own_text_in_caption(tmp_path: Path) -> None:
+    body = figure("Ablauf der Recherche, eigener Text")
+    assert count(tmp_path, "core.figure.own-figure", body) == 1
+
+
+def test_own_figure_reports_note_in_running_text(tmp_path: Path) -> None:
+    body = "Der Ablauf hat drei Schritte (eigener Text).\n\nQuelle: eigene Darstellung\n"
+    assert count(tmp_path, "core.figure.own-figure", body) == 2
+
+
+def test_own_figure_reports_note_in_footnote(tmp_path: Path) -> None:
+    body = "Der Ablauf hat drei Schritte.#footnote[Eigene Darstellung.]\n"
+    assert count(tmp_path, "core.figure.own-figure", body) == 1
+
+
+def test_own_figure_accepts_phrase_in_a_sentence(tmp_path: Path) -> None:
+    body = "Jede Klinik führt eine eigene Tabelle der Geräte. Sie schreibt einen eigenen Text.\n"
+    assert count(tmp_path, "core.figure.own-figure", body) == 0
+
+
 # core.figure.foreign-source
 
 

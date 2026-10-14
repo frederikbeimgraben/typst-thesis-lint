@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pypdf
 
 from thesis_lint.context import Milestone
-from thesis_lint.core.sources import SAT, VORLAGE, ref
+from thesis_lint.core.sources import SAT, VL02, VORLAGE, ref
 from thesis_lint.model import Location, Needs, Severity
 from thesis_lint.packs.sat_meti.support import listed_keys, main_location, setting_location
 from thesis_lint.registry import Finding, NoParams, rule
@@ -168,7 +168,17 @@ def _rights(path: Path, *, encrypted: bool, comments: bool, ctx: Context) -> Ite
             SAT,
             "S. 12",
             "aufgeführten Quellen müssen […] als pdf-Dokument abgegeben werden",
-        )
+        ),
+        ref(
+            VL02,
+            "Folie 14",
+            "Studierende müssen alle Quellen als zip-File abgeben",
+        ),
+        ref(
+            VL02,
+            "Folie 15",
+            "Studierende müssen alle Quellen als zip-File abgeben",
+        ),
     ],
     needs=Needs.SOURCES_DIR,
     submission=True,
@@ -231,7 +241,14 @@ class TitlepageDateParams:
     "sat.titlepage-date",
     summary="The submission date on the title page has the format DD.MM.YYYY.",
     severity=Severity.ERROR,
-    sources=[ref(VORLAGE, "Titelseite", "vorgelegt am: 12.12.20xx")],
+    sources=[
+        ref(VORLAGE, "Titelseite", "vorgelegt am: 12.12.20xx"),
+        ref(
+            VL02,
+            "Folie 56",
+            "Deckblatt: Titel, Autoren, Datum, Anschrift des Fachbereichs",
+        ),
+    ],
     params=TitlepageDateParams(),
     submission=True,
 )

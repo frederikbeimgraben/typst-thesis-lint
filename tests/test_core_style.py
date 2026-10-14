@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.helpers import make_context, messages, run_rule
+from thesis_lint.model import Severity
+from thesis_lint.registry import all_rules
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -195,3 +197,64 @@ def test_placeholder(tmp_path: Path) -> None:
     assert len(found) == 4
     good = make_context(tmp_path / "b", "= Kapitel\n\nDas Todo-Listen-Prinzip hilft.\n")
     assert run_rule(good, "core.placeholder") == []
+
+
+def test_vl02_word_list_and_severity(tmp_path: Path) -> None:
+    rules = all_rules()
+    assert rules["core.style.first-person"].severity == Severity.ERROR
+    assert rules["core.style.we"].severity == Severity.ERROR
+    assert rules["core.style.man"].severity == Severity.WARNING
+    found = findings_for(tmp_path / "a", "core.style.filler", "Das ist schlichtweg offenbar so.")
+    assert len(found) == 2
+    assert findings_for(tmp_path / "b", "core.style.filler", "Das ist so.") == []
+
+
+def test_sentence_length_twenty_words(tmp_path: Path) -> None:
+    rule_id = "core.style.sentence-length"
+    assert len(findings_for(tmp_path / "a", rule_id, "Wort " * 20 + "Ende.")) == 1
+    assert findings_for(tmp_path / "b", rule_id, "Wort " * 19 + "Ende.") == []
+
+
+def test_tense(tmp_path: Path) -> None:
+    rule_id = "core.style.tense"
+    found = findings_for(
+        tmp_path / "a", rule_id, "Die Studie zeigte das. Die Daten wurden geprüft."
+    )
+    assert len(found) == 2
+    assert "passive preterite" in found[1]
+    good = "Die Studie zeigt das. Die Waren sind teuer."
+    assert findings_for(tmp_path / "b", rule_id, good) == []
+
+
+def test_tense_allows_method_chapter(tmp_path: Path) -> None:
+    body = "= Methoden\n\nDie Suche ergab 40 Treffer.\n\n= Diskussion\n\nDas war gut.\n"
+    found = run_rule(make_context(tmp_path, body), "core.style.tense")
+    assert [f.location.line for f in found] == [7]
+
+
+@pytest.mark.parametrize(
+    ("text", "count"),
+    [
+        ("Das ist nicht gut sondern schlecht.", 1),
+        ("Das gilt nicht nur hier sondern auch dort.", 1),
+        ("Das ist nicht gut, sondern schlecht.", 0),
+        ("Das ist nicht gut,\nsondern schlecht.", 0),
+        ("Nicht X; sondern Y.", 0),
+    ],
+)
+def test_sondern_comma(tmp_path: Path, text: str, count: int) -> None:
+    assert len(findings_for(tmp_path, "core.style.sondern-comma", text)) == count
+
+
+@pytest.mark.parametrize(
+    ("text", "count"),
+    [
+        ("Das IoT beschreibt ein System, indem die Welt verbunden ist.", 1),
+        ("Das Kapitel, indem die Methode steht, folgt.", 1),
+        ("Das System prüft Antworten, indem es Quellen vergleicht.", 0),
+        ("Das System beschreibt ein System, in dem die Welt verbunden ist.", 0),
+        ("Man prüft es, indem man misst.", 0),
+    ],
+)
+def test_indem(tmp_path: Path, text: str, count: int) -> None:
+    assert len(findings_for(tmp_path, "core.style.indem", text)) == count

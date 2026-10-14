@@ -151,6 +151,8 @@ def test_questionable(tmp_path: Path) -> None:
     )
     findings = run_rule(bib_context(tmp_path, bib), "core.bib.questionable")
     assert sorted(f.message.split("'")[1] for f in findings) == ["s", "t", "u"]
+    severities = {f.message.split("'")[1]: f.severity for f in findings}
+    assert severities == {"u": Severity.WARNING, "t": None, "s": None}
 
 
 def test_firstname_consistent(tmp_path: Path) -> None:
@@ -169,3 +171,125 @@ def test_firstname_consistent_accepts_one_style(tmp_path: Path) -> None:
     assert len(findings) == 1
     bib = "@misc{a, author = {Brink, A. and U. Lange and Weber, H.-P.}}\n"
     assert run_rule(bib_context(tmp_path, bib), "core.bib.firstname-consistent") == []
+
+
+def test_not_citable_reports_newspapers(tmp_path: Path) -> None:
+    bib = (
+        "@online{a, title = {A}, url = {https://www.spiegel.de/x}}\n"
+        "@online{b, title = {B}, url = {https://www.umwelt.de/x}}\n"
+        "@online{c, title = {C}, url = {https://de.wikipedia.org/wiki/X}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.not-citable")
+    assert sorted(f.message.split("'")[1] for f in findings) == ["a", "c"]
+
+
+# core.bib.ai-source
+
+
+def test_ai_source(tmp_path: Path) -> None:
+    bib = (
+        "@online{a, author = {{OpenAI}}, title = {ChatGPT}}\n"
+        "@online{b, author = {Shannon, Claude}, title = {A Theory}}\n"
+        "@misc{c, title = {Antwort von Claude auf eine Frage}}\n"
+        "@misc{d, title = {Mistralwinde}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.ai-source")
+    assert [f.message.split("'")[1] for f in findings] == ["a", "c"]
+
+
+# core.bib.preprint
+
+
+def test_preprint(tmp_path: Path) -> None:
+    bib = (
+        "@misc{a, title = {A}, eprinttype = {arXiv}, eprint = {2312.10997}}\n"
+        "@misc{b, title = {B}, url = {https://www.medrxiv.org/content/1}}\n"
+        "@article{c, title = {C}, doi = {10.1000/x}, journal = {Nature}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.preprint")
+    assert [f.message.split("'")[1] for f in findings] == ["a", "b"]
+
+
+# core.bib.english
+
+
+def test_english_reports_only_german_entries(tmp_path: Path) -> None:
+    bib = (
+        "@book{a, title = {Anfertigung wissenschaftlicher Arbeiten}}\n"
+        "@book{b, title = {Die Kunst der Zitation}}\n"
+        "@book{c, title = {Something for Everyone}, langid = {ngerman}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.english")
+    assert messages(findings) == [
+        "the bibliography has no English source. Include the English literature."
+    ]
+
+
+def test_english_accepts_english_entry(tmp_path: Path) -> None:
+    for extra in (
+        "@book{e, title = {Benchmarking Retrieval for Medicine}}\n",
+        "@book{e, title = {Zitieren}, langid = {english}}\n",
+    ):
+        bib = "@book{a, title = {Die Kunst der Zitation}}\n" + extra
+        assert run_rule(bib_context(tmp_path, bib), "core.bib.english") == []
+
+
+# core.bib.online-durable
+
+
+def test_online_durable(tmp_path: Path) -> None:
+    bib = (
+        "@online{a, title = {A}, url = {https://x.org}}\n"
+        "@misc{b, title = {B}, url = {https://x.org}}\n"
+        "@misc{c, title = {C}, url = {https://x.org}, doi = {10.1/x}}\n"
+        "@online{d, title = {D}, url = {https://x.org},"
+        " note = {Archiv: https://web.archive.org/web/2026/https://x.org}}\n"
+        "@article{e, title = {E}}\n"
+        "@online{f, title = {F}, url = {https://eur-lex.europa.eu/eli/reg/2024/1689}}\n"
+        "@online{g, title = {G}, url = {https://www.iso.org/standard/1.html}}\n"
+        "@online{h, title = {H}, url = {https://notiso.org/x}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.online-durable")
+    assert [f.message.split("'")[1] for f in findings] == ["a", "b", "h"]
+
+
+# core.bib.identifier
+
+
+def test_identifier(tmp_path: Path) -> None:
+    bib = (
+        GOOD_ARTICLE
+        + "@book{b, title = {B}}\n@book{c, title = {C}, isbn = {978-3-658-02511-3}}\n"
+        + "@inproceedings{d, title = {D}, doi = {10.1/d}}\n@misc{e, title = {E}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.identifier")
+    assert messages(findings) == [
+        "@article entry 'good' has no doi. Add it.",
+        "@book entry 'b' has no isbn. Add it.",
+    ]
+
+
+# core.bib.grey-type
+
+
+def test_grey_type(tmp_path: Path) -> None:
+    bib = (
+        "@misc{a, title = {A}}\n@report{b, title = {B}, type = {Whitepaper}}\n"
+        "@online{c, title = {C}, howpublished = {Website}}\n@book{d, title = {D}}\n"
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.grey-type")
+    assert messages(findings) == [
+        "@misc entry 'a' does not tell the kind of the source. Add type or howpublished."
+    ]
+
+
+# core.bib.book-pages
+
+
+def test_book_pages(tmp_path: Path) -> None:
+    bib = (
+        "@book{a, title = {A}, pages = {1--300}}\n@book{b, title = {B}, pagetotal = {300}}\n"
+        + GOOD_ARTICLE
+    )
+    findings = run_rule(bib_context(tmp_path, bib), "core.bib.book-pages")
+    assert [f.message.split("'")[1] for f in findings] == ["a"]

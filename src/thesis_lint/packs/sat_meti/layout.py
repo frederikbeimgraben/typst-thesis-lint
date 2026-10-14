@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from itertools import pairwise
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import USER, VORLAGE, ref
+from thesis_lint.core.sources import USER, VL02, VORLAGE, ref
 from thesis_lint.model import Needs, Severity
 from thesis_lint.packs.sat_meti import pdflines
 from thesis_lint.packs.sat_meti.pdflines import (
@@ -661,6 +661,11 @@ _ITEM_START = re.compile(r"^(?:[•‣◦–-]|\d+[.)])\s")
             VORLAGE,
             "Textabsätze",
             "dass jede Zeile möglichst bis zum Zeilenrand beschrieben ist",
+        ),
+        ref(
+            VL02,
+            "Folie 103",
+            "Blocksatz verwenden oder Worttrennung durchführen, wenn Flattersatz zu extrem",
         ),
     ],
     params=JustifiedParams(),

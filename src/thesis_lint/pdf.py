@@ -88,7 +88,7 @@ class _PlumberPage(Protocol):
     height: float
     chars: list[dict[str, object]]
 
-    def extract_text(self) -> str | None: ...
+    def extract_text(self, *, x_tolerance: float) -> str | None: ...
 
 
 class _PlumberPdf(Protocol):
@@ -97,8 +97,12 @@ class _PlumberPdf(Protocol):
     def close(self) -> None: ...
 
 
-def read_pdf(path: Path) -> PdfDocument:
-    """Read the glyphs and the text of all pages, and the security settings."""
+def read_pdf(path: Path, *, x_tolerance: float = 3.0) -> PdfDocument:
+    """Read the glyphs and the text of all pages, and the security settings.
+
+    `x_tolerance` is the largest gap in points between two glyphs of one word.
+    LaTeX PDFs often have no space glyphs, so a smaller value finds the word gaps.
+    """
     reader = pypdf.PdfReader(str(path))
     encrypted = reader.is_encrypted
     annotations_allowed = True
@@ -117,7 +121,7 @@ def read_pdf(path: Path) -> PdfDocument:
                     index=index,
                     width=float(page.width),
                     height=float(page.height),
-                    text=page.extract_text() or "",
+                    text=page.extract_text(x_tolerance=x_tolerance) or "",
                     chars=chars,
                 )
             )

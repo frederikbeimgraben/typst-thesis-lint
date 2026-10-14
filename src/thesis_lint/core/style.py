@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from itertools import chain, groupby
 from typing import TYPE_CHECKING
 
+from thesis_lint.bib import clean
+from thesis_lint.context import top_heading
+from thesis_lint.core import spelling as spellcheck
+from thesis_lint.core.abbreviations import is_abbreviation
 from thesis_lint.core.prose import (
     TEXT_KINDS,
     any_regex,
@@ -26,14 +30,17 @@ from thesis_lint.core.prose import (
     word_regex,
     words,
 )
-from thesis_lint.core.sources import BRINK, HW, LANGE, USER, VORLAGE, ref
-from thesis_lint.model import Severity
+from thesis_lint.core.sources import BRINK, FACTSHEET, HW, LANGE, USER, VL02, VORLAGE, ref
+from thesis_lint.core.spelling import SpellCheckUnavailableError
+from thesis_lint.model import Location, Severity
 from thesis_lint.registry import Finding, NoParams, rule
 from thesis_lint.text import sentences
 from thesis_lint.typst.document import PLACEHOLDERS, UnitKind
+from thesis_lint.typst.parse import read_text
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from pathlib import Path
 
     from thesis_lint.context import Context
     from thesis_lint.text import Sentence
@@ -61,12 +68,15 @@ def _word_rule(ctx: Context, entries: tuple[str, ...], message: str) -> Iterator
 
 # Personal style
 
+_NO_PERSPECTIVE = "Sachverhalte werden nicht aus der Ich- oder Wir-Perspektive beschrieben!"
+
 
 @rule(
     "core.style.first-person",
     summary="The text does not use the first person singular.",
-    severity=Severity.WARNING,
+    severity=Severity.ERROR,
     sources=[
+        ref(VL02, "Folie 89", _NO_PERSPECTIVE),
         ref(
             HW,
             "S. 103",
@@ -97,13 +107,14 @@ def first_person(ctx: Context, params: WordList) -> Iterator[Finding]:
 @rule(
     "core.style.we",
     summary="The text does not use the first person plural.",
-    severity=Severity.WARNING,
+    severity=Severity.ERROR,
     sources=[
+        ref(VL02, "Folie 89", _NO_PERSPECTIVE),
         ref(
             HW,
             "S. 103",
             "den Leser durch die erste Person Plural (wir) in den Text einzubeziehen",
-        )
+        ),
     ],
     params=WordList(
         words=("wir", "uns", "unser", "unsere", "unserer", "unserem", "unseren", "unseres")
@@ -178,6 +189,9 @@ def reader_address(ctx: Context, params: WordList) -> Iterator[Finding]:
     severity=Severity.ERROR,
     sources=[
         ref(
+            VL02, "Folie 89", "Beispiele für Füllwörter: also, einigermaßen, sozusagen, schlichtweg"
+        ),
+        ref(
             BRINK,
             "S. 181",
             "Füllwörter wie also, dann, auch, nun etc. (...) wieder eliminiert werden.",
@@ -189,7 +203,18 @@ def reader_address(ctx: Context, params: WordList) -> Iterator[Finding]:
         ),
     ],
     params=WordList(
-        words=("also", "dann", "auch", "nun", "gewissermaßen", "sozusagen", "eigentlich")
+        words=(
+            "also",
+            "dann",
+            "auch",
+            "nun",
+            "gewissermaßen",
+            "sozusagen",
+            "eigentlich",
+            "einigermaßen",
+            "schlichtweg",
+            "offenbar",
+        )
     ),
 )
 def filler(ctx: Context, params: WordList) -> Iterator[Finding]:
@@ -516,11 +541,12 @@ class SubclauseParams:
     summary="A sentence has at most two subordinate clauses.",
     severity=Severity.WARNING,
     sources=[
+        ref(VL02, "Folie 99", "Verschachtelte Nebensätze vermeiden"),
         ref(
             HW,
             "S. 98",
             "Mehr als zwei Nebensätze machen es dem Leser schwer, sich im Satz zu orientieren",
-        )
+        ),
     ],
     params=SubclauseParams(),
 )
@@ -542,14 +568,15 @@ def subclauses(ctx: Context, params: SubclauseParams) -> Iterator[Finding]:
 class SentenceLengthParams:
     """Parameters of core.style.sentence-length."""
 
-    max_words: int = 25
+    max_words: int = 20
 
 
 @rule(
     "core.style.sentence-length",
-    summary="A sentence has at most 25 words.",
+    summary="A sentence has at most 20 words.",
     severity=Severity.WARNING,
     sources=[
+        ref(VL02, "Folie 99", "Sätze in der Länge begrenzen (15 – 20 Wörter ideal)"),
         ref(
             BRINK,
             "S. 178",
@@ -963,6 +990,440 @@ def function_verb(ctx: Context, params: FunctionVerbParams) -> Iterator[Finding]
             if not allowed.fullmatch(match.group(1))
         ),
         "double negation {match!r}. Use the positive word.",
+    )
+
+
+# Tense
+
+
+@dataclass(frozen=True, slots=True)
+class TenseParams:
+    """Parameters of core.style.tense.
+
+    `allowed_chapters` are level-1 titles where the preterite is correct.
+    `forms` are preterite verb forms. The match is case-sensitive, so that the
+    noun "Waren" does not match. If `passive` is set, the message names the
+    passive preterite ("wurde ... untersucht").
+    """
+
+    allowed_chapters: tuple[str, ...] = ("Methoden",)
+    forms: tuple[str, ...] = (
+        "war",
+        "waren",
+        "wurde",
+        "wurden",
+        "hatte",
+        "hatten",
+        "zeigte",
+        "zeigten",
+        "ergab",
+        "ergaben",
+        "untersuchte",
+        "untersuchten",
+        "fand",
+        "fanden",
+        "gab",
+        "gaben",
+        "kam",
+        "kamen",
+        "lag",
+        "lagen",
+        "blieb",
+        "blieben",
+        "ging",
+        "gingen",
+        "stellte",
+        "stellten",
+        "führte",
+        "führten",
+        "nutzte",
+        "nutzten",
+        "verwendete",
+        "verwendeten",
+        "analysierte",
+        "analysierten",
+        "bestätigte",
+        "bestätigten",
+        "erfolgte",
+        "erfolgten",
+        "lieferte",
+        "lieferten",
+        "betrug",
+        "betrugen",
+        "konnte",
+        "konnten",
+        "musste",
+        "mussten",
+    )
+    passive: bool = True
+
+
+_PASSIVE_AUX = frozenset({"wurde", "wurden"})
+
+
+@rule(
+    "core.style.tense",
+    summary="The text is in the present tense. Only the chapter 'Methoden' uses the preterite.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(
+            FACTSHEET,
+            "Wichtige stilistische Merkmale",
+            "Der gesamte Text muss hauptsächlich im Präsens verfasst werden.",
+        ),
+        ref(
+            HW,
+            "S. 101",
+            "Lediglich die Darstellung konkreter einmaliger Tätigkeiten (...) im Präteritum",
+        ),
+    ],
+    params=TenseParams(),
+)
+def tense(ctx: Context, params: TenseParams) -> Iterator[Finding]:
+    """Report preterite verb forms outside the allowed chapters."""
+    pattern = word_regex(params.forms, ignore_case=False)
+    allowed = frozenset(params.allowed_chapters)
+    exclusions = word_regex(PassiveParams().not_participles)
+    for unit in prose_units(ctx):
+        if unit.heading is not None and top_heading(unit.heading).text in allowed:
+            continue
+        for sentence, text in unit_sentences(unit):
+            for match in pattern.finditer(text):
+                form = match.group(0)
+                passive = (
+                    params.passive
+                    and form in _PASSIVE_AUX
+                    and is_passive(form + " " + text[match.end() :], exclusions)
+                )
+                kind = "passive preterite" if passive else "preterite"
+                yield finding(
+                    unit,
+                    sentence.start + match.start(),
+                    sentence.start + match.end(),
+                    f"{kind} {form!r} outside the method chapter. Use the present tense.",
+                )
+
+
+# Punctuation and word choice
+
+_SONDERN = re.compile(r"(?<!\w)sondern(?!\w)")
+# Characters before "sondern" that make a comma unnecessary.
+_SONDERN_OK = frozenset(",;:(–—-/")
+
+
+@rule(
+    "core.style.sondern-comma",
+    summary="A comma comes before the conjunction 'sondern'.",
+    severity=Severity.ERROR,
+    sources=[
+        ref(VL02, "Folie 96", "dass vor die Konjunktion sondern immer ein Komma zu setzen ist"),
+    ],
+)
+def sondern_comma(ctx: Context, _params: NoParams) -> Iterator[Finding]:
+    """Report 'sondern' without a comma before it."""
+    for unit in prose_units(ctx):
+        text = masked(unit)
+        for match in _SONDERN.finditer(text):
+            before = text[: match.start()].rstrip()
+            if before and before[-1] not in _SONDERN_OK:
+                yield finding(
+                    unit,
+                    len(before),
+                    match.end(),
+                    "no comma before 'sondern'. Add a comma.",
+                )
+
+
+@dataclass(frozen=True, slots=True)
+class IndemParams:
+    """Articles that start the noun phrase before ', indem'."""
+
+    articles: tuple[str, ...] = ("das", "ein", "einem", "einer", "dem")
+
+
+@rule(
+    "core.style.indem",
+    summary="'indem' does not follow a noun. A relative clause uses 'in dem'.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(VL02, "Folie 101", "„indem“ – dadurch dass … : macht hier keinen Sinn"),
+    ],
+    params=IndemParams(),
+)
+def indem(ctx: Context, params: IndemParams) -> Iterator[Finding]:
+    """Report 'indem' directly after a noun phrase like 'ein System,'.
+
+    The pattern is an article, up to two small words and a capitalized noun.
+    """
+    articles = "|".join(re.escape(article) for article in params.articles if article)
+    if not articles:
+        return
+    pattern = re.compile(
+        rf"(?<!\w)(?i:{articles})\s+(?:[a-zäöüß]+\s+){{0,2}}[A-ZÄÖÜ][\w-]*\s*,\s*(indem)(?!\w)"
+    )
+    yield from (
+        finding(
+            unit,
+            match.start(1),
+            match.end(1),
+            "'indem' after a noun. If it means 'in which', write 'in dem' or 'bei dem'.",
+        )
+        for unit, match in hits(ctx, pattern)
+    )
+
+
+# Spelling
+
+_SPELL_KINDS = TEXT_KINDS | {UnitKind.HEADING}
+_SPELL_TOKEN = re.compile(r"[^\W_](?:[\w­-]*[^\W_])?")
+_NAME_WORD = re.compile(r"[^\W\d_]+")
+_COMPOUND = re.compile(r"(?<![\w­-])([A-ZÄÖÜ][a-zäöüß]+)-([A-ZÄÖÜ][a-zäöüß]+)(?![\w-])")
+# A part of a hyphenated word must be longer than this to lose a joint 's'.
+_MIN_JOINT_PART = 3
+
+
+@dataclass(frozen=True, slots=True)
+class SpellingParams:
+    """Parameters of core.style.spelling and core.style.compound-hyphen.
+
+    `dictionary` is a file in the project root in the hunspell format for a
+    personal dictionary. Each line is a word (`Hirsch`) or a word and a model
+    word (`Validierung/Hoffnung`). With a model word, hunspell also accepts the
+    inflected forms of the word (`Validierungen`). The model word must be a
+    root word of the hunspell dictionary. Lines that start with '#' are
+    comments. The file is optional.
+    """
+
+    language: str = "de_DE"
+    dictionary: str = "dictionary.txt"
+
+
+def spell_units(ctx: Context) -> Iterator[Unit]:
+    """Yield the units that the spelling rules check, and the abstract."""
+    abstract = ctx.project.abstract
+    return chain(prose_units(ctx, _SPELL_KINDS), () if abstract is None else (abstract,))
+
+
+def dictionary_words(path: Path) -> Iterator[str]:
+    """Yield the words of a project dictionary file. A missing file has no words."""
+    try:
+        lines = read_text(path).splitlines()
+    except OSError, UnicodeDecodeError:
+        return iter(())
+    return (line.strip() for line in lines if line.strip() and not line.strip().startswith("#"))
+
+
+def personal_dictionary(ctx: Context, dictionary: str) -> tuple[str, ...]:
+    """Return the lines of the project dictionary for hunspell `-p`."""
+    return tuple(dictionary_words(ctx.root / dictionary)) if dictionary else ()
+
+
+def project_words(ctx: Context, dictionary: str) -> frozenset[str]:
+    """Return the case-folded words that the spelling rules accept without a check.
+
+    These are the glossary keys and forms, the acronyms, the bibliography keys
+    and person names, and the plain words of the project dictionary. A line
+    with a model word ('/') goes only to hunspell.
+    """
+    project = ctx.project
+    entries = list(project.bibliography.entries.values())
+    texts = chain(
+        chain.from_iterable(
+            (term.key, term.name, term.plural or "", term.genitive or "")
+            for term in project.terms.values()
+        ),
+        chain.from_iterable(
+            (item.key, item.short, item.long) for item in project.acronyms.values()
+        ),
+        (entry.key for entry in entries),
+        (clean(name) for entry in entries for name in (*entry.names(), *entry.names("editor"))),
+        (line for line in personal_dictionary(ctx, dictionary) if "/" not in line),
+    )
+    return frozenset(
+        word.casefold() for text in texts for word in (text, *_NAME_WORD.findall(text))
+    )
+
+
+def _skip_word(word: str, ignored: frozenset[str]) -> bool:
+    """Return True if the spelling rule does not check `word`."""
+    return (
+        # Single letters are abbreviations or list labels.
+        len(word) < 2
+        or any(char.isdigit() for char in word)
+        or word.isupper()
+        or is_abbreviation(word)
+        or word.casefold() in ignored
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class SpellToken:
+    """A word of the text and the spellings that make it correct.
+
+    The word is correct if hunspell knows one spelling of `whole`, or one
+    spelling of each item of `parts`. A hyphenated word has one item per part.
+    """
+
+    unit: Unit
+    start: int
+    end: int
+    word: str
+    whole: tuple[str, ...]
+    parts: tuple[tuple[str, ...], ...]
+
+
+def spell_tokens(unit: Unit, ignored: frozenset[str]) -> Iterator[SpellToken]:
+    """Yield the words of a unit that the spelling rule checks."""
+    text = masked(unit)
+    for match in _SPELL_TOKEN.finditer(text):
+        word = match.group(0).replace("­", "")
+        if _skip_word(word, ignored):
+            continue
+        dot = text.startswith(".", match.end())
+        pieces = word.split("-")
+        parts = tuple(
+            _part_spellings(piece, last=index == len(pieces) - 1, dot=dot)
+            for index, piece in enumerate(pieces)
+            if not _skip_word(piece, ignored)
+        )
+        whole = (word, f"{word}.") if dot else (word,)
+        yield SpellToken(unit, match.start(), match.end(), word, whole, parts)
+
+
+def _part_spellings(piece: str, *, last: bool, dot: bool) -> tuple[str, ...]:
+    """Return the accepted spellings of one part of a hyphenated word.
+
+    A part before a hyphen can end with the joint 's', as in 'Nutzungs-'.
+    """
+    if last:
+        return (piece, f"{piece}.") if dot else (piece,)
+    joint = (piece[:-1],) if piece.endswith("s") and len(piece) > _MIN_JOINT_PART else ()
+    return (piece, *joint)
+
+
+def is_misspelled(token: SpellToken, unknown: frozenset[str]) -> bool:
+    """Return True if hunspell knows no spelling of the token."""
+
+    def known(spellings: tuple[str, ...]) -> bool:
+        return any(spelling not in unknown for spelling in spellings)
+
+    return not known(token.whole) and any(not known(part) for part in token.parts)
+
+
+def _unavailable(ctx: Context, error: SpellCheckUnavailableError) -> Finding:
+    message = f"the spelling check did not run: {error}. Install hunspell and the dictionary."
+    return Finding(
+        message + " Set DICPATH to the dictionary directory.",
+        Location(ctx.root / ctx.config.paths.main),
+        severity=Severity.WARNING,
+    )
+
+
+@rule(
+    "core.style.spelling",
+    summary=(
+        "The text has no spelling errors (hunspell de_DE and the project dictionary"
+        " with one `word` or `word/model` on each line)."
+    ),
+    severity=Severity.ERROR,
+    sources=[
+        ref(VL02, "Folie 92", "Rechtschreibfehler sind (...) nicht akzeptabel!"),
+        ref(VL02, "Folie 93", "Einfach nur peinlich!"),
+    ],
+    params=SpellingParams(),
+)
+def spelling(ctx: Context, params: SpellingParams) -> Iterator[Finding]:
+    """Report words that hunspell does not know.
+
+    The rule does not check quotations, code, math, glossary uses, words with
+    digits and abbreviations. If hunspell does not run, the rule reports one
+    warning.
+    """
+    ignored = project_words(ctx, params.dictionary)
+    tokens = [token for unit in spell_units(ctx) for token in spell_tokens(unit, ignored)]
+    if not tokens:
+        return
+    spellings = {item for token in tokens for item in chain(token.whole, *token.parts)}
+    try:
+        unknown = spellcheck.unknown_words(
+            spellings, params.language, personal_dictionary(ctx, params.dictionary)
+        )
+    except SpellCheckUnavailableError as error:
+        yield _unavailable(ctx, error)
+        return
+    where = params.dictionary or "the project dictionary"
+    yield from (
+        finding(
+            token.unit,
+            token.start,
+            token.end,
+            f"unknown word {token.word!r}. Correct it or add it to {where}.",
+        )
+        for token in tokens
+        if is_misspelled(token, unknown)
+    )
+
+
+@rule(
+    "core.style.compound-hyphen",
+    summary="A compound noun is one word, not two nouns with a hyphen.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(VL02, "Folie 94", "Deutsche, schreibt mehr zusammen!"),
+    ],
+    params=SpellingParams(),
+)
+def compound_hyphen(ctx: Context, params: SpellingParams) -> Iterator[Finding]:
+    """Report 'Nomen-Nomen' if the dictionary knows the joined word.
+
+    The rule skips glossary uses, abbreviations, words with digits and words
+    of the glossary, the bibliography and the project dictionary. It also
+    skips a compound with a part that hunspell does not know alone. Such a
+    part is usually a proper name, as in 'Hirsch-Weber'.
+    """
+    ignored = project_words(ctx, params.dictionary)
+    found = [
+        (unit, match, match.group(1) + match.group(2).lower())
+        for unit in spell_units(ctx)
+        for match in _COMPOUND.finditer(masked(unit))
+        if not {part.casefold() for part in match.group(0, 1, 2)} & ignored
+    ]
+    if not found:
+        return
+    part_spellings = {
+        match.group(0): (
+            _part_spellings(match.group(1), last=False, dot=False),
+            (match.group(2),),
+        )
+        for _, match, _ in found
+    }
+    words = chain(
+        (joined for _, _, joined in found),
+        chain.from_iterable(chain.from_iterable(part_spellings.values())),
+    )
+    try:
+        unknown = spellcheck.unknown_words(
+            words, params.language, personal_dictionary(ctx, params.dictionary)
+        )
+    except SpellCheckUnavailableError as error:
+        yield _unavailable(ctx, error)
+        return
+
+    def names_part(compound: str) -> bool:
+        return any(
+            all(spelling in unknown for spelling in spellings)
+            for spellings in part_spellings[compound]
+        )
+
+    yield from (
+        finding(
+            unit,
+            match.start(),
+            match.end(),
+            f"{match.group(0)!r} has a hyphen. Write it as one word: {joined!r}.",
+        )
+        for unit, match, joined in found
+        if joined not in unknown and not names_part(match.group(0))
     )
 
 

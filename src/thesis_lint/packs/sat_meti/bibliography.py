@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import SAT, VORLAGE, ref
+from thesis_lint.core.sources import SAT, VL02, VORLAGE, ref
 from thesis_lint.model import Location, Severity
 from thesis_lint.packs.sat_meti.support import listed_keys, main_location
 from thesis_lint.registry import Finding, rule
@@ -44,7 +44,17 @@ class BibCountParams:
             SAT,
             "S. 10",
             "mindestens 8 Quellen hiervon mindestens 5 Quellen in Form von Originalarbeiten",
-        )
+        ),
+        ref(
+            VL02,
+            "Folie 33",
+            "Nach erfolgreichem Durchlauf des reviews ... → zitierfähig!",
+        ),
+        ref(
+            VL02,
+            "Folie 135",
+            "Vollständige Bibliographische Daten bzw. ISBN oder DOI müssen vorhanden sein",
+        ),
     ],
     params=BibCountParams(),
 )
@@ -105,7 +115,17 @@ class CitationStyleParams:
             VORLAGE,
             "Zitate",
             "Hinweise auf die verwendete Literatur im Stil APA 6th",
-        )
+        ),
+        ref(
+            VL02,
+            "Folie 141",
+            "Wichtig: Vorgaben müssen exakt eingehalten werden!",
+        ),
+        ref(
+            VL02,
+            "Folie 150",
+            "Erstellt mittels Citavi Ver. 5.6.0.2, im Stil APA 6th ed.",
+        ),
     ],
     params=CitationStyleParams(),
 )

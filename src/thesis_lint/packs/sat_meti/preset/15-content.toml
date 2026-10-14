@@ -1,0 +1,76 @@
+# Rule settings of the area "content": abstract, hypothesis, methods and results.
+# Each rule lists all its parameters with the value of the preset.
+# The source of the rules is the lecture VL02 of the SAT seminar.
+
+[rules."core.abstract.conclusion-overlap"]
+chapter = "Zusammenfassung"
+min-share = 0.3
+min-length = 5
+stopwords = [
+  "aber", "allen", "alle", "bereits", "dabei", "daher", "damit", "deren", "dessen",
+  "diese", "diesem", "diesen", "dieser", "dieses", "durch", "einem", "einen", "einer",
+  "eines", "gegen", "haben", "ihrer", "jedoch", "keine", "keinen", "können", "könnte",
+  "nicht", "seine", "seiner", "solche", "solchen", "sowie", "unter", "welche", "werden",
+  "wurde", "wurden", "zudem", "zwischen",
+]
+
+[rules."core.abstract.elements"]
+hypothesis = ['\bHypothese', '\bThese\b', '\bvermute[nt]?\b']
+method = [
+  '\bMethode',
+  '\bLiteraturarbeit',
+  '\bLiteraturrecherche',
+  '\bAnalyse',
+  '\bwerte[nt]?\b[^.!?]*\baus\b',
+  '\buntersuch',
+]
+result = [
+  '\bErgebnis',
+  '\bzeig(?:t|en)\b',
+  '\bbestätig',
+  '\bwiderleg',
+  '\bkann\b[^.!?]*\bnicht\b',
+]
+
+# The allowed abbreviations are the same as in core.abbrev.glossary.
+[rules."core.abstract.no-abbreviations"]
+allowed = [
+  "ISO", "IEC", "IEEE", "EN", "DIN", "VDE", "VDI", "EU", "USA", "UK", "GmbH",
+  "PDF", "URL", "DOI", "ISBN", "ISSN", "TODO", "XXX",
+]
+roman-numerals = true
+
+[rules."core.abstract.no-outline"]
+patterns = [
+  '\b(?:Kapitel|Abschnitt)\s+\d',
+  '\bgliedert\s+sich\b',
+  '(?-i:\b(?:Zuerst|Zunächst|Erstens)\b[^\n]*?\b(?:Dann|Danach|Anschließend)\b)',
+]
+
+[rules."core.hypothesis.statement"]
+title = "Arbeitshypothese"
+placeholder-pattern = '^\[.*\]$'
+
+[rules."core.hypothesis.verdict"]
+chapters = ["Diskussion", "Zusammenfassung"]
+subject = 'hypothese'
+verbs = [
+  "bestätigt", "widerlegt", "verifiziert", "falsifiziert", "stützen", "stützt",
+  "angenommen", "verworfen", "abgelehnt",
+]
+
+[rules."core.methods.literature-search"]
+chapter = "Methoden"
+systems = [
+  "EDDI", "Nautos", "PubMed", "IEEE Xplore", "Google Scholar", "ScienceDirect",
+  "Cochrane", "Scopus", "Web of Science", "arXiv", "Consensus", "KVK", "Springer",
+]
+search-terms = ['Suchbegriff', 'Suchstring', 'Schlagw(?:o|ö)rt']
+period = ['\b(?:19|20)\d{2}\b', 'Zeitraum']
+criteria = ['Kriteri', 'Einschluss', 'Ausschluss']
+
+[rules."core.results.has-figure"]
+chapter = "Ergebnisse"
+
+[rules."core.results.not-in-discussion"]
+chapters = ["Diskussion", "Zusammenfassung"]

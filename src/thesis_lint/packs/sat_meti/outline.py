@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import SAT, VORLAGE, ref
+from thesis_lint.core.sources import SAT, VL02, VORLAGE, ref
 from thesis_lint.model import Needs, Severity
 from thesis_lint.packs.sat_meti import pdflines
 from thesis_lint.packs.sat_meti.support import (
@@ -54,6 +54,16 @@ class OutlineParams:
             "muss die nachfolgend gegebene Gliederung aufweisen (Hauptüberschriften)",
         ),
         ref(SAT, "S. 10", "Die Hauptgliederung ist in SAT fix vorgegeben und einzuhalten."),
+        ref(
+            VL02,
+            "Folie 56",
+            "Einleitung /Hintergrund/ Stand der Forschung, Ziele, Angewandte Methoden, Ergebnisse",
+        ),
+        ref(
+            VL02,
+            "Folie 57",
+            "IMRaD structure: Introduction, Methods, Results and Discussion",
+        ),
     ],
     params=OutlineParams(),
 )
@@ -170,7 +180,22 @@ class DirectoriesParams:
             VORLAGE,
             "Gliederung des Textes",
             "mit Ausnahme des Abschnitts „Verzeichnisse“",
-        )
+        ),
+        ref(
+            VL02,
+            "Folie 56",
+            "Inhaltsverzeichnis",
+        ),
+        ref(
+            VL02,
+            "Folie 97",
+            "Erklären Sie die Bedeutung von Abkürzungen, bevor diese fortgesetzt verwendet werden",
+        ),
+        ref(
+            VL02,
+            "Folie 100",
+            "zusätzlich soll ein Abkürzungsverzeichnis verwendet werden",
+        ),
     ],
     params=DirectoriesParams(),
     needs=Needs.PDF,
@@ -233,7 +258,17 @@ class DeclarationParams:
             VORLAGE,
             "Gliederung des Textes",
             "Eidesstattliche Erklärung: Der hier im Dokument gegebene Text muss übernommen werden.",
-        )
+        ),
+        ref(
+            VL02,
+            "Folie 146",
+            "Am Ende der schriftlichen Ausarbeitung steht zumeist eine eidesstattliche Erklärung",
+        ),
+        ref(
+            VL02,
+            "Folie 147",
+            "Einhaltung der formellen Vorgaben",
+        ),
     ],
     params=DeclarationParams(),
 )

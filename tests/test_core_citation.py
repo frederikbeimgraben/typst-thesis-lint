@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
 from tests.helpers import make_context, messages, run_rule
-from thesis_lint.core.citation import ellipsis_problems
+from thesis_lint.core.citation import author_key, ellipsis_problems
+from thesis_lint.model import Severity
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -139,7 +140,16 @@ def test_ibid_accepts_normal_text(tmp_path: Path) -> None:
 
 def test_ff(tmp_path: Path) -> None:
     body = "Siehe @a[S. 12ff.] und S. 3 ff. im Text. Der Stoff. ist gut.\n"
-    assert len(check(tmp_path, "core.cite.ff", body)) == 2
+    findings = check(tmp_path, "core.cite.ff", body)
+    assert len(findings) == 2
+    assert all(f.severity is None for f in findings)
+
+
+def test_ff_reports_f_as_warning(tmp_path: Path) -> None:
+    body = "Das gilt @a[S. 12 f.] und @b[S. 3f.]. Der Fall f. ist gut @c[S. 4-5].\n"
+    findings = check(tmp_path, "core.cite.ff", body)
+    assert messages(findings) == ["avoid 'f.'. Give the exact page range."] * 2
+    assert all(f.severity is Severity.WARNING for f in findings)
 
 
 def test_secondary(tmp_path: Path) -> None:
@@ -200,7 +210,12 @@ def test_foreign_quote(tmp_path: Path) -> None:
         'Er sagt "das Modell ist gut für die Daten" @c[S. 3].\n'
     )
     findings = check(tmp_path, "core.cite.foreign-quote", body)
-    assert len(findings) == 1
+    assert messages(findings) == ["the quotation is in English. Translate it or paraphrase it."] * 2
+
+
+def test_foreign_quote_accepts_german_quote(tmp_path: Path) -> None:
+    body = 'Er sagt "das Modell ist gut für die Daten" @c[S. 3].\n'
+    assert check(tmp_path, "core.cite.foreign-quote", body) == []
 
 
 # core.cite.software
@@ -224,3 +239,92 @@ def test_software_accepts_a_reference_to_the_tool_list(tmp_path: Path) -> None:
     )
     assert len(findings) == 1
     assert findings[0].location.line == 5
+
+
+# core.cite.page-required
+
+
+def test_page_required_reports_citation_without_page(tmp_path: Path) -> None:
+    body = (
+        "Das gilt @a. Das auch @b[Kap. 3].\n\n"
+        "Fußnote#footnote[Quelle: @c.].\n\n"
+        "#figure([X], caption: [Bild @d])\n"
+    )
+    findings = check(tmp_path, "core.cite.page-required", body)
+    assert sorted(f.message.split()[2] for f in findings) == ["@a", "@b", "@c", "@d"]
+
+
+def test_page_required_accepts_pages(tmp_path: Path) -> None:
+    body = (
+        "Das gilt @a[S. 223]. Das auch @b[S. 223-227] und @c[S. 223–227].\n\n"
+        "English @d[p. 4] and @e[pp. 4-6]. Siehe @sec:x.\n\n= X <sec:x>\n"
+    )
+    assert check(tmp_path, "core.cite.page-required", body) == []
+
+
+# core.cite.same-author-cluster
+
+AUTHOR_BIB = (
+    "@misc{m1, author = {Maier, Hans and Roth, Eva}, title = {A}}\n"
+    "@misc{m2, author = {Hans Maier}, title = {B}}\n"
+    "@misc{m3, author = {Maier, Lisa}, title = {C}}\n"
+    "@misc{eu1, author = {{Europäische Kommission}}, title = {D}}\n"
+    "@misc{eu2, author = {{Europäische Kommission}}, title = {E}}\n"
+    "@misc{r1, author = {Roth, Eva}, title = {F}}\n"
+)
+
+
+def test_author_key() -> None:
+    assert author_key("Maier, Hans") == author_key("Hans Maier") == "maier, h"
+    assert author_key("{Europäische Kommission}") == "europäische kommission"
+
+
+def test_same_author_cluster_reports_same_first_author(tmp_path: Path) -> None:
+    body = "Eins @m1 @m2. Zwei @eu1; @eu2.\n"
+    ctx = make_context(tmp_path, body, files={"main.bib": AUTHOR_BIB})
+    findings = run_rule(ctx, "core.cite.same-author-cluster")
+    assert [f.message.split()[0] for f in findings] == ["@m2", "@eu2"]
+
+
+def test_same_author_cluster_accepts_other_authors(tmp_path: Path) -> None:
+    body = "Eins @m1 @m3 @r1. Zwei @m1 und @m2.\n"
+    ctx = make_context(tmp_path, body, files={"main.bib": AUTHOR_BIB})
+    assert run_rule(ctx, "core.cite.same-author-cluster") == []
+
+
+# core.cite.vgl-apa
+
+
+def test_vgl_apa_reports_phrase_before_citation(tmp_path: Path) -> None:
+    body = "Das gilt (vgl. @a[S. 3]). Siehe @b[S. 4].\n\nText#footnote[Vgl. @c[S. 1].].\n"
+    findings = check(tmp_path, "core.cite.vgl-apa", body)
+    assert len(findings) == 3
+    assert findings[0].message == "remove 'vgl.' before @a. APA style has no such phrase."
+
+
+def test_vgl_apa_accepts_plain_citation(tmp_path: Path) -> None:
+    body = "Das gilt @a[S. 3]. Siehe Abschnitt @sec:x. Vgl. dazu die Tabelle.\n\n= X <sec:x>\n"
+    assert check(tmp_path, "core.cite.vgl-apa", body) == []
+
+
+# core.cite.indirect-intro
+
+
+def test_indirect_intro_reports_paragraph_without_introduction(tmp_path: Path) -> None:
+    body = "Das Verfahren ist schnell. Es ist auch genau @m1[S. 3].\n"
+    ctx = make_context(tmp_path, body, files={"main.bib": AUTHOR_BIB})
+    findings = run_rule(ctx, "core.cite.indirect-intro")
+    assert len(findings) == 1
+    assert findings[0].location.column == 1
+
+
+def test_indirect_intro_accepts_introduction_or_single_sentence(tmp_path: Path) -> None:
+    body = (
+        "Maier und Roth halten das Verfahren für schnell. Es ist genau @m1[S. 3].\n\n"
+        "Laut einer Untersuchung ist es schnell. Es ist genau @m2[S. 3].\n\n"
+        "Das Verfahren ist schnell @m3[S. 2]. Es ist genau @m3[S. 3].\n\n"
+        "Das Verfahren ist schnell und genau @r1[S. 3].\n\n"
+        "Das Verfahren ist schnell. Es ist genau.\n"
+    )
+    ctx = make_context(tmp_path, body, files={"main.bib": AUTHOR_BIB})
+    assert run_rule(ctx, "core.cite.indirect-intro") == []

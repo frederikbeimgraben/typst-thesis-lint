@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from thesis_lint.context import Milestone, top_heading
-from thesis_lint.core.sources import SAT, VORLAGE, ref
+from thesis_lint.core.sources import SAT, VL02, VORLAGE, ref
 from thesis_lint.model import Severity
 from thesis_lint.packs.sat_meti.support import (
     child_heading,
@@ -61,6 +61,26 @@ class HypothesisParams:
             "S. 10",
             "Die Arbeitshypothese ist die zentrale Aussage",
         ),
+        ref(
+            VL02,
+            "Folie 26",
+            "Eine Hypothese ist eine überprüfbare Aussage",
+        ),
+        ref(
+            VL02,
+            "Folie 28",
+            "Die wissenschaftliche Fragestellung wird als Arbeitshypothese formuliert",
+        ),
+        ref(
+            VL02,
+            "Folie 30",
+            "Arbeitshypothese: C ist schneller als Java",
+        ),
+        ref(
+            VL02,
+            "Folie 78",
+            "Folgendes muss festgelegt sein: ... Hypothese und Leitfragen",
+        ),
     ],
     params=HypothesisParams(),
 )
@@ -102,6 +122,16 @@ class ProjectPlanParams:
         ref(VORLAGE, "Anhang", "Projektplan: [Hier das Gantt-Diagramm einfügen"),
         ref(
             SAT, "S. 11", "Im Anhang des Entwurfsdokumentes muss ein Gantt-Diagramm enthalten sein"
+        ),
+        ref(
+            VL02,
+            "Folie 20",
+            "Planung der Umsetzung (Arbeitspakete, Termine)",
+        ),
+        ref(
+            VL02,
+            "Folie 79",
+            "Damit inhaltliche und zeitliche Ziele erreicht werden, ist Planung des Prozesses",
         ),
     ],
     params=ProjectPlanParams(),

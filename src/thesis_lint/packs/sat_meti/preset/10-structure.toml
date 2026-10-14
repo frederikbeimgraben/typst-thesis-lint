@@ -153,6 +153,10 @@ words = [
 [rules."core.intro.no-figure"]
 chapter = "Einleitung"
 
+[rules."core.intro.guiding-questions"]
+chapter = "Einleitung"
+terms = ["Leitfrage"]
+
 [rules."core.list.consistent"]
 excluded-chapters = ["Eidesstattliche Erklärung"]
 
@@ -166,6 +170,11 @@ excluded-chapters = ["Eidesstattliche Erklärung"]
 [rules."core.section.balance"]
 chapters = ["Methoden", "Ergebnisse", "Diskussion"]
 max-factor = 3.0
+
+[rules."core.section.background-share"]
+title-pattern = 'Grundlagen|Hintergrund|Stand der (?:Technik|Forschung|Wissenschaft)'
+max-share = 0.15
+body-chapters = ["Einleitung", "Methoden", "Ergebnisse", "Diskussion", "Zusammenfassung"]
 
 [rules."core.section.min-sentences"]
 min-sentences = 3

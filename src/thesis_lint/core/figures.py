@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import BRINK, HW, VORLAGE, ref
+from thesis_lint.core.sources import BRINK, HW, VL02, VORLAGE, ref
 from thesis_lint.core.structure import (
     FINITE_VERBS,
     arg_text,
@@ -143,9 +143,12 @@ def _caption_matches(ctx: Context, patterns: tuple[str, ...]) -> Iterator[tuple[
             yield figure, match.group(0)
 
 
+_OWN_MARKERS = r"\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle|Text)\b"
+
+
 @rule(
     "core.figure.own-figure",
-    summary="A caption does not say 'eigene Darstellung'.",
+    summary="No caption and no note in the text says 'eigene Darstellung' or 'eigener Text'.",
     severity=Severity.ERROR,
     sources=[
         ref(
@@ -157,14 +160,25 @@ def _caption_matches(ctx: Context, patterns: tuple[str, ...]) -> Iterator[tuple[
             ),
         ),
         ref(BRINK, "S. 197", "Auf derartige Bemerkungen sollte jedoch verzichtet werden"),
+        ref(
+            VL02,
+            "Folie 114",
+            concat(
+                "unsinnig bestimmte Teile Ihrer Arbeit mit der Bemerkung „eigener Text“ oder ",
+                "„eigene Abbildung“ zu versehen",
+            ),
+        ),
     ],
-    params=PatternsParams(
-        patterns=(r"\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle)",)
-    ),
+    params=PatternsParams(patterns=(_OWN_MARKERS,)),
 )
 def own_figure(ctx: Context, params: PatternsParams) -> Iterator[Finding]:
-    """Report captions that mark the figure as the own work."""
-    return (
+    """Report captions and notes in the text that mark a part as the own work.
+
+    In a caption, each match counts. In the running text and in footnotes, a match
+    counts only as a note: in parentheses, after 'Quelle', or as a full sentence.
+    So a phrase like 'eine eigene Tabelle der Werte' in a sentence is not a finding.
+    """
+    captions = (
         Finding(
             concat(
                 f"the caption contains {found!r}. Remove it. ",
@@ -174,6 +188,33 @@ def own_figure(ctx: Context, params: PatternsParams) -> Iterator[Finding]:
         )
         for figure, found in _caption_matches(ctx, params.patterns)
     )
+    compiled = [re.compile(pattern, re.IGNORECASE) for pattern in params.patterns]
+    notes = (
+        Finding(
+            concat(
+                f"the text marks a part as own work ({match.group(0)!r}). Remove the note. ",
+                "All text and figures without a citation are the own work.",
+            ),
+            unit.location(match.start(), match.end()),
+        )
+        for unit in ctx.project.document.prose_units()
+        for pattern in compiled
+        for match in pattern.finditer(unit.text)
+        if not unit.is_quoted(match.start()) and _is_note(unit.text, match.start(), match.end())
+    )
+    return chain(captions, notes)
+
+
+_NOTE_BEFORE = re.compile(r"(?:\(|\[|Quelle\s*:?|^|[.!?:]|[\u2013\u2014-])\s*$", re.IGNORECASE)
+_NOTE_AFTER = re.compile(r"^\s*(?:[)\].;,]|$)")
+
+
+def _is_note(text: str, start: int, end: int) -> bool:
+    """Return True if the match at `start` to `end` stands alone as a note."""
+    marks = "".join(PLACEHOLDERS)
+    before = text[:start].rstrip(marks)
+    after = text[end:].lstrip(marks)
+    return bool(_NOTE_BEFORE.search(before)) and bool(_NOTE_AFTER.match(after))
 
 
 @dataclass(frozen=True, slots=True)
@@ -213,6 +254,16 @@ class ForeignSourceParams:
                 "Auch bei der Übernahme von Tabellen und Abbildungen (vgl. Kap. 6.3) muss ",
                 "der/die Urheber/in angegeben werden.",
             ),
+        ),
+        ref(
+            VL02,
+            "Folie 35",
+            "Urheberrechtsverletzungen möglich, wenn Quelle geschütztes Material verwendet",
+        ),
+        ref(
+            VL02,
+            "Folie 110",
+            "auch das Design (z.B. bei Bildzitaten) bzw. die wörtliche Formulierung sind geschützt",
         ),
     ],
     params=ForeignSourceParams(),

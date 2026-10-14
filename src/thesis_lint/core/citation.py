@@ -7,7 +7,9 @@ from dataclasses import dataclass
 from itertools import chain, pairwise
 from typing import TYPE_CHECKING
 
-from thesis_lint.core.sources import BRINK, DFG, HW, LANGE, USER, ref
+from thesis_lint.bib import clean
+from thesis_lint.context import top_heading
+from thesis_lint.core.sources import BRINK, DFG, HW, LANGE, USER, VL02, ref
 from thesis_lint.model import Location, Severity
 from thesis_lint.registry import Finding, NoParams, rule
 from thesis_lint.text import sentences, word_count, words
@@ -17,6 +19,7 @@ from thesis_lint.typst.parse import call_name, named_arg, walk
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
+    from thesis_lint.bib import BibEntry
     from thesis_lint.context import Context
     from thesis_lint.text import Sentence
 
@@ -146,12 +149,6 @@ def quotation_citations(ctx: Context, quotation: Quotation) -> list[Reference]:
     return citations(ctx, unit, start, end)
 
 
-def _quotation_has_footnote(quotation: Quotation) -> bool:
-    unit = quotation.unit
-    start, end = (0, len(unit.text)) if quotation.block else sentence_range(unit, quotation.span)
-    return any(start <= span.start < end for span, _ in unit.footnotes)
-
-
 def _supplements(ctx: Context) -> Iterator[tuple[str, Location]]:
     return (
         (reference.supplement, reference.location)
@@ -162,16 +159,25 @@ def _supplements(ctx: Context) -> Iterator[tuple[str, Location]]:
 
 
 def _pattern_findings(
-    ctx: Context, pattern: re.Pattern[str], message: str, *, supplements: bool = True
+    ctx: Context,
+    pattern: re.Pattern[str],
+    message: str,
+    *,
+    supplements: bool = True,
+    severity: Severity | None = None,
 ) -> Iterator[Finding]:
     """Yield a finding for each match in unquoted text and, optionally, in supplements."""
     in_text = (
-        Finding(message.format(match=match.group(0)), unit.location(match.start(), match.end()))
+        Finding(
+            message.format(match=match.group(0)),
+            unit.location(match.start(), match.end()),
+            severity=severity,
+        )
         for unit in body_units(ctx)
         for match in pattern.finditer(unquoted(unit))
     )
     in_supplements = (
-        Finding(message.format(match=match.group(0)), location)
+        Finding(message.format(match=match.group(0)), location, severity=severity)
         for text, location in (_supplements(ctx) if supplements else ())
         for match in pattern.finditer(text)
     )
@@ -196,6 +202,7 @@ def _phrase_pattern(phrases: Iterable[str]) -> re.Pattern[str]:
     sources=[
         ref(LANGE, "S. 128"),
         ref(HW, "S. 145, 206"),
+        ref(VL02, "Folien 111, 122"),
     ],
 )
 def quote_needs_key(ctx: Context, _params: NoParams) -> Iterator[Finding]:
@@ -224,7 +231,10 @@ class QuotePageParams:
     "core.cite.quote-page",
     summary="The citation of a quotation gives the page.",
     severity=Severity.ERROR,
-    sources=[ref(LANGE, "S. 128 f.")],
+    sources=[
+        ref(LANGE, "S. 128 f."),
+        ref(VL02, "Folie 128", "Seitenangaben sind beim Literaturverweis obligatorisch!"),
+    ],
     params=QuotePageParams(),
 )
 def quote_page(ctx: Context, params: QuotePageParams) -> Iterator[Finding]:
@@ -287,7 +297,7 @@ def ellipsis(ctx: Context, _params: NoParams) -> Iterator[Finding]:
     "core.cite.abstract",
     summary="The abstract has no citations.",
     severity=Severity.ERROR,
-    sources=[ref(HW, "S. 110"), ref(BRINK, "S. 214")],
+    sources=[ref(HW, "S. 110"), ref(BRINK, "S. 214"), ref(VL02, "Folie 60")],
 )
 def abstract(ctx: Context, _params: NoParams) -> Iterator[Finding]:
     """Report citations in the abstract."""
@@ -336,7 +346,7 @@ class ConsensusParams:
     "core.cite.consensus",
     summary="A sentence that claims a consensus cites at least two sources.",
     severity=Severity.ERROR,
-    sources=[ref(BRINK, "S. 230")],
+    sources=[ref(BRINK, "S. 230"), ref(VL02, "Folie 126")],
     params=ConsensusParams(),
 )
 def consensus(ctx: Context, params: ConsensusParams) -> Iterator[Finding]:
@@ -470,22 +480,36 @@ def ibid(ctx: Context, params: IbidParams) -> Iterator[Finding]:
 
 @dataclass(frozen=True, slots=True)
 class FfParams:
-    """Parameters of `core.cite.ff`."""
+    """Parameters of `core.cite.ff`.
+
+    `pattern` finds "ff." (an error). `f_pattern` finds "f." after a page number.
+    The rule always reports "f." as a warning.
+    """
 
     pattern: str = r"(?<![^\W\d_])ff\."
+    f_pattern: str = r"(?<=\d)\s*f\.(?!\w)"
 
 
 @rule(
     "core.cite.ff",
-    summary="Citations give exact page ranges and do not use 'ff.'.",
+    summary="Citations give exact page ranges and do not use 'ff.' or 'f.'.",
     severity=Severity.ERROR,
-    sources=[ref(BRINK, "S. 222 f.", 'darauf folgenden Kürzel "ff." (fortfolgende)')],
+    sources=[
+        ref(BRINK, "S. 222 f.", 'darauf folgenden Kürzel "ff." (fortfolgende)'),
+        ref(VL02, "Folie 128", "Auf Angaben wie 223 f. oder 223 ff. möglichst verzichten"),
+    ],
     params=FfParams(),
 )
 def ff(ctx: Context, params: FfParams) -> Iterator[Finding]:
-    """Report `ff.` in text and supplements."""
+    """Report `ff.` as configured and `f.` after a page number as a warning."""
     yield from _pattern_findings(
         ctx, re.compile(params.pattern), "do not use 'ff.'. Give the exact page range."
+    )
+    yield from _pattern_findings(
+        ctx,
+        re.compile(params.f_pattern),
+        "avoid 'f.'. Give the exact page range.",
+        severity=Severity.WARNING,
     )
 
 
@@ -507,6 +531,7 @@ class QuoteShareParams:
         ref(HW, "S. 145"),
         ref(LANGE, "S. 101"),
         ref(BRINK, "S. 228"),
+        ref(VL02, "Folien 110, 122, 124, 125"),
     ],
     params=QuoteShareParams(),
 )
@@ -559,9 +584,12 @@ def clusters(ctx: Context, unit: Unit) -> list[list[Reference]]:
 
 @rule(
     "core.cite.cluster",
-    summary="A group of adjacent citations has at most four keys.",
+    summary="A group of adjacent citations has a limited number of keys (default 4).",
     severity=Severity.WARNING,
-    sources=[ref(LANGE, "S. 103")],
+    sources=[
+        ref(LANGE, "S. 103"),
+        ref(VL02, "Folie 126", "Tipp: Zitieren Sie nur die „wichtigste“ Arbeit"),
+    ],
     params=ClusterParams(),
 )
 def cluster(ctx: Context, params: ClusterParams) -> Iterator[Finding]:
@@ -596,7 +624,10 @@ class BlockQuoteParams:
     "core.cite.block-quote",
     summary="A quotation with more than 40 words is a block quote.",
     severity=Severity.ERROR,
-    sources=[ref(USER, "APA 6th edition, block quotation")],
+    sources=[
+        ref(USER, "APA 6th edition, block quotation"),
+        ref(VL02, "Folien 110, 122, 124, 125"),
+    ],
     params=BlockQuoteParams(),
 )
 def block_quote(ctx: Context, params: BlockQuoteParams) -> Iterator[Finding]:
@@ -633,6 +664,12 @@ class SecondaryParams:
     sources=[
         ref(HW, "S. 145", "zit. nach Ebel 2006, 34"),
         ref(BRINK, "S. 230", "[zitiert nach"),
+        ref(VL02, "Folie 119", "allgemein auch nicht zulässig"),
+        ref(
+            VL02,
+            "Folie 131",
+            "Es muss in jedem Fall das Originalzitat (Primärquelle) verwendet werden!",
+        ),
     ],
     params=SecondaryParams(),
 )
@@ -685,7 +722,7 @@ class ReportingParams:
     "core.cite.reporting-unsourced",
     summary="A paragraph that reports the view of others cites a source.",
     severity=Severity.WARNING,
-    sources=[ref(LANGE, "S. 125", "Wiedergabefloskeln")],
+    sources=[ref(LANGE, "S. 125", "Wiedergabefloskeln"), ref(VL02, "Folien 110, 111")],
     params=ReportingParams(),
 )
 def reporting_unsourced(ctx: Context, params: ReportingParams) -> Iterator[Finding]:
@@ -760,20 +797,23 @@ def is_english(text: str, params: ForeignQuoteParams) -> bool:
 
 @rule(
     "core.cite.foreign-quote",
-    summary="An English quotation has a translation in a footnote.",
-    severity=Severity.ERROR,
-    sources=[ref(BRINK, "S. 228")],
+    summary="A quotation is not in English. Translate it or paraphrase it.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(BRINK, "S. 228", "Mit fremdsprachigen Zitaten ist äußerst sparsam umzugehen."),
+        ref(VL02, "Folie 130", "andernfalls eigene Übersetzung bzw. indirektes Zitat"),
+    ],
     params=ForeignQuoteParams(),
 )
 def foreign_quote(ctx: Context, params: ForeignQuoteParams) -> Iterator[Finding]:
-    """Report English quotations without a footnote in the same sentence."""
+    """Report English quotations. A translation in a footnote does not change the result."""
     yield from (
         Finding(
-            "the quotation is in English. Add a German translation in a footnote.",
+            "the quotation is in English. Translate it or paraphrase it.",
             quotation.location,
         )
         for quotation in all_quotations(ctx)
-        if is_english(quotation.text, params) and not _quotation_has_footnote(quotation)
+        if is_english(quotation.text, params)
     )
 
 
@@ -830,3 +870,271 @@ def _refers_to_tools(sentence: Sentence, labels: tuple[str, ...]) -> bool:
         reference.key in labels and sentence.start <= reference.span.start < sentence.end
         for reference in sentence.unit.references
     )
+
+
+# --- core.cite.page-required ----------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class PageRequiredParams:
+    """Parameters of `core.cite.page-required`. The pattern finds a page in a supplement."""
+
+    page_pattern: str = r"(?<![^\W\d_])(?:S\.|pp?\.)\s*\d"
+
+
+def all_citations(ctx: Context) -> Iterator[tuple[Unit, Reference]]:
+    """Yield each citation with its unit, also in captions, cells and footnotes."""
+    excluded = EXCLUDED_TITLES
+    return (
+        (unit, reference)
+        for unit in ctx.project.document.units
+        if unit.heading is None or top_heading(unit.heading).text not in excluded
+        for reference in unit.references
+        if ctx.project.is_citation(reference.key)
+    )
+
+
+@rule(
+    "core.cite.page-required",
+    summary="Each citation gives a page, for example @key[S. 223] or @key[S. 223-227].",
+    severity=Severity.ERROR,
+    sources=[
+        ref(VL02, "Folie 128", "Im SAT-Kurs ist diese Anforderung ein Muss-Kriterium."),
+    ],
+    params=PageRequiredParams(),
+)
+def page_required(ctx: Context, params: PageRequiredParams) -> Iterator[Finding]:
+    """Report citations without a page in the supplement."""
+    pattern = re.compile(params.page_pattern)
+    yield from (
+        Finding(
+            " ".join(
+                (
+                    f"the citation @{reference.key} gives no page.",
+                    f"Add it, for example @{reference.key}[S. 12].",
+                )
+            ),
+            reference.location,
+        )
+        for _, reference in all_citations(ctx)
+        if not pattern.search(reference.supplement or "")
+    )
+
+
+# --- core.cite.same-author-cluster ----------------------------------------------------
+
+
+def author_key(name: str) -> str:
+    """Return a key for a person name: the family name and the first initial, in lower case.
+
+    A braced name is an organization. Its key is the full name.
+    """
+    text = name.strip()
+    if text.startswith("{") and text.endswith("}"):
+        return clean(text).lower()
+    cleaned = clean(text)
+    if "," in cleaned:
+        family, _, given = cleaned.partition(",")
+    else:
+        *given_parts, family = cleaned.split() or [""]
+        given = " ".join(given_parts)
+    return f"{family.strip().lower()}, {given.strip()[:1].lower()}".rstrip(", ")
+
+
+def first_author(entry: BibEntry) -> str | None:
+    """Return the key of the first author, editor or organization of an entry, or None."""
+    names = entry.names("author") or entry.names("editor")
+    if names:
+        return author_key(names[0])
+    organization = entry.get("organization") or entry.get("institution")
+    return organization.lower() if organization else None
+
+
+@rule(
+    "core.cite.same-author-cluster",
+    summary="A group of adjacent citations does not cite two works of the same first author.",
+    severity=Severity.ERROR,
+    sources=[
+        ref(
+            VL02,
+            "Folie 126",
+            "nicht aus mehreren Quellen desselben Autors bestehen",
+        ),
+        ref(BRINK, "S. 204"),
+    ],
+)
+def same_author_cluster(ctx: Context, _params: NoParams) -> Iterator[Finding]:
+    """Report a citation whose first author is also the first author of an earlier key."""
+    entries = ctx.project.bibliography.entries
+    yield from (
+        Finding(
+            " ".join(
+                (
+                    f"@{later.key} and @{earlier.key} in one group have the same first author.",
+                    "Cite only the most important work of this author.",
+                )
+            ),
+            later.location,
+        )
+        for unit in body_units(ctx)
+        for group in clusters(ctx, unit)
+        for index, later in enumerate(group)
+        if (author := first_author(entries[later.key])) is not None
+        for earlier in (
+            next(
+                (
+                    r
+                    for r in group[:index]
+                    if r.key != later.key and first_author(entries[r.key]) == author
+                ),
+                None,
+            ),
+        )
+        if earlier is not None
+    )
+
+
+# --- core.cite.vgl-apa ----------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class VglApaParams:
+    """Parameters of `core.cite.vgl-apa`. The pattern finds a phrase at the end of a text."""
+
+    pattern: str = r"(?i)(?<![^\W\d_])(?:vgl\.|siehe)\s*[(\[]?\s*$"
+
+
+_LOOKBACK = 20
+
+
+@rule(
+    "core.cite.vgl-apa",
+    summary="A citation in APA style has no 'vgl.' or 'siehe' before it.",
+    severity=Severity.WARNING,
+    sources=[ref(VL02, "Folie 123", "Bei der Harvard-Zitiertechnik entfallen diese Floskeln.")],
+    params=VglApaParams(),
+)
+def vgl_apa(ctx: Context, params: VglApaParams) -> Iterator[Finding]:
+    """Report `vgl.` or `siehe` directly before a citation."""
+    pattern = re.compile(params.pattern)
+    yield from (
+        Finding(
+            " ".join(
+                (
+                    f"remove {match.group(0).strip()!r} before @{reference.key}.",
+                    "APA style has no such phrase.",
+                )
+            ),
+            unit.location(start + match.start(), reference.span.end),
+        )
+        for unit, reference in all_citations(ctx)
+        for start in (max(0, reference.span.start - _LOOKBACK),)
+        if (match := pattern.search(unit.text[start : reference.span.start])) is not None
+    )
+
+
+# --- core.cite.indirect-intro ---------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class IndirectIntroParams:
+    """Parameters of `core.cite.indirect-intro`.
+
+    A paragraph with at least `min_sentences` sentences and citations only in its last
+    sentence must name an author of a cited work or contain one of `signals` in its first
+    sentence.
+    """
+
+    min_sentences: int = 2
+    signals: tuple[str, ...] = (
+        "laut",
+        "zufolge",
+        "nach Ansicht",
+        "nach Auffassung",
+        "nach Meinung",
+        "beschreibt",
+        "beschreiben",
+        "berichtet",
+        "berichten",
+        "zeigt",
+        "zeigen",
+        "untersucht",
+        "untersuchen",
+        "definiert",
+        "definieren",
+        "betont",
+        "betonen",
+        "argumentiert",
+        "argumentieren",
+        "stellt fest",
+        "stellen fest",
+        "behauptet",
+        "behaupten",
+        "schreibt",
+        "schreiben",
+        "fasst",
+        "fassen",
+        "fordert",
+        "fordern",
+        "verlangt",
+        "verlangen",
+        "regelt",
+        "regeln",
+        "Studie",
+        "Autor",
+        "Autoren",
+        "Autorin",
+        "Autorinnen",
+    )
+
+
+def family_names(entry: BibEntry) -> Iterator[str]:
+    """Yield the family names of the authors and editors, and the organization of an entry."""
+    names = (*entry.names("author"), *entry.names("editor"))
+    organizations = (entry.get(field) for field in ("organization", "institution"))
+    return chain(
+        (author_key(name).partition(",")[0] for name in names),
+        (value.lower() for value in organizations if value),
+    )
+
+
+@rule(
+    "core.cite.indirect-intro",
+    summary="A paraphrase of more than one sentence names its source at the start.",
+    severity=Severity.WARNING,
+    sources=[
+        ref(
+            VL02,
+            "Folie 123",
+            "muss eine Einleitung den Beginn des indirekten Zitats andeuten",
+        ),
+    ],
+    params=IndirectIntroParams(),
+)
+def indirect_intro(ctx: Context, params: IndirectIntroParams) -> Iterator[Finding]:
+    """Report paragraphs that cite only in the last sentence and have no introduction."""
+    signal = _phrase_pattern(params.signals)
+    entries = ctx.project.bibliography.entries
+    for unit in body_units(ctx):
+        found = sentences(unit)
+        if unit.kind is not UnitKind.PARAGRAPH or len(found) < params.min_sentences:
+            continue
+        first, last = found[0], found[-1]
+        cited = citations(ctx, unit)
+        if not cited or citations(ctx, unit, 0, last.start):
+            continue
+        opening = unquoted(unit, first.start, first.end).lower()
+        names = {name for r in cited for name in family_names(entries[r.key]) if name}
+        if signal.search(opening) or any(
+            re.search(rf"(?<!\w){re.escape(name)}(?!\w)", opening) for name in names
+        ):
+            continue
+        yield Finding(
+            " ".join(
+                (
+                    f"the paragraph cites @{cited[0].key} only in its last sentence.",
+                    "Name the author at the start of the paraphrase, or cite each sentence.",
+                )
+            ),
+            unit.location(first.start, first.end),
+        )

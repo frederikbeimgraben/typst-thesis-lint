@@ -17,6 +17,8 @@ An abbreviation in capitals is a glossary acronym.
 - Input: source
 - Parameter `allowed`: `('ISO', 'IEC', 'IEEE', 'EN', 'DIN', 'VDE', 'VDI', 'EU', 'USA', 'UK', 'GmbH', 'PDF', 'URL', 'DOI', 'ISBN', 'ISSN', 'TODO', 'XXX')`
 - Parameter `roman-numerals`: `True`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 97: „Erklären Sie die Bedeutung von Abkürzungen, bevor diese (...) verwendet werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 100: „zusätzlich soll ein Abkürzungsverzeichnis verwendet werden“
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Abkürzungen: „Abkürzungen sind (...) zu benennen und im Abkürzungsverzeichnis aufzuführen.“
 
 ### `core.abbrev.raw-form`
@@ -27,6 +29,7 @@ The text uses the glossary function for each acronym, not its raw short or long 
 - Input: source
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Abkürzungen: „so kann dies später nur noch als MPG bezeichnet werden.“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 199: „Abkürzungen durchgängig verwenden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 100: „Erklären Sie die Bedeutung von Abkürzungen, bevor diese verwendet werden“
 
 ### `core.abbrev.sentence-start`
 
@@ -45,6 +48,49 @@ Each glossary term and acronym is used in the text.
 - Default severity: error
 - Input: source
 - Source: Project decision, Abkürzungen: „Kein ungenutzter Glossar- oder Akronym-Eintrag“
+
+### `core.abstract.conclusion-overlap`
+
+The abstract contains the main statements of the conclusion (word overlap).
+
+- Default severity: warning
+- Input: source
+- Parameter `chapter`: `'Zusammenfassung'`
+- Parameter `min-share`: `0.3`
+- Parameter `min-length`: `5`
+- Parameter `stopwords`: `('aber', 'allen', 'alle', 'bereits', 'dabei', 'daher', 'damit', 'deren', 'dessen', 'diese', 'diesem', 'diesen', 'dieser', 'dieses', 'durch', 'einem', 'einen', 'einer', 'eines', 'gegen', 'haben', 'ihrer', 'jedoch', 'keine', 'keinen', 'können', 'könnte', 'nicht', 'seine', 'seiner', 'solche', 'solchen', 'sowie', 'unter', 'welche', 'werden', 'wurde', 'wurden', 'zudem', 'zwischen')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 65: „Die wichtigsten Aussagen der Conclusion müssen im Abstract enthalten sein“
+
+### `core.abstract.elements`
+
+The abstract names the hypothesis, the method and the result.
+
+- Default severity: warning
+- Input: source
+- Parameter `hypothesis`: `('\\bHypothese', '\\bThese\\b', '\\bvermute[nt]?\\b')`
+- Parameter `method`: `('\\bMethode', '\\bLiteraturarbeit', '\\bLiteraturrecherche', '\\bAnalyse', '\\bwerte[nt]?\\b[^.!?]*\\baus\\b', '\\buntersuch')`
+- Parameter `result`: `('\\bErgebnis', '\\bzeig(?:t|en)\\b', '\\bbestätig', '\\bwiderleg', '\\bkann\\b[^.!?]*\\bnicht\\b')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 60: „Motivation, Hypothese, Methoden und Ergebnisse müssen erkennbar sein“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 59: „Verifizierung oder Falsifizierung der Hypothese“
+
+### `core.abstract.no-abbreviations`
+
+The abstract contains no abbreviations and no acronyms of the glossary.
+
+- Default severity: error
+- Input: source
+- Parameter `allowed`: `('ISO', 'IEC', 'IEEE', 'EN', 'DIN', 'VDE', 'VDI', 'EU', 'USA', 'UK', 'GmbH', 'PDF', 'URL', 'DOI', 'ISBN', 'ISSN', 'TODO', 'XXX')`
+- Parameter `roman-numerals`: `True`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 60: „Keine Abkürzungen, sofern nicht allgemein bekannt“
+
+### `core.abstract.no-outline`
+
+The abstract is no outline of the chapters and no story of the work steps.
+
+- Default severity: warning
+- Input: source
+- Parameter `patterns`: `('\\b(?:Kapitel|Abschnitt)\\s+\\d', '\\bgliedert\\s+sich\\b', '(?-i:\\b(?:Zuerst|Zunächst|Erstens)\\b[^\\n]*?\\b(?:Dann|Danach|Anschließend)\\b)')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 62: „Das Abstract ist keine ... Inhaltsangabe ... Beschreibung des zeitlichen Ablaufs“
 
 ### `core.appendix.referenced`
 
@@ -66,6 +112,17 @@ Person names in the bibliography have no academic titles.
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 207: „Beim Zitieren bleiben akademische Grade unberücksichtigt“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 179
 
+### `core.bib.ai-source`
+
+The bibliography does not cite an AI tool as a source of facts.
+
+- Default severity: warning
+- Input: source
+- Parameter `tools`: `('ChatGPT', 'OpenAI', 'Copilot', 'Gemini', 'Claude', 'Perplexity', 'Mistral')`
+- Parameter `name-fields`: `('author', 'editor')`
+- Parameter `text-fields`: `('organization', 'institution', 'title', 'url')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 17: „solltest du es nicht als Quelle für sachliche Informationen zitieren“
+
 ### `core.bib.author-present`
 
 Each entry names an author, an editor or an organization.
@@ -74,6 +131,16 @@ Each entry names an author, an editor or an organization.
 - Input: source
 - Parameter `fields`: `('author', 'editor', 'organization', 'institution')`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Literaturverzeichnis
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 136
+
+### `core.bib.book-pages`
+
+A book entry has no pages field. The citation gives the page.
+
+- Default severity: warning
+- Input: source
+- Parameter `types`: `('book',)`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 129: „Seitenangabe nur im Literaturverzeichnis … → vermeiden!“
 
 ### `core.bib.cited`
 
@@ -84,6 +151,7 @@ Each cited key exists, each entry is cited, and no bibliography uses `full: true
 - Submission rule: warning in the draft profile
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 184: „enthält das Literaturverzeichnis nur Vollbelege“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 206: „Titel, die zwar gelesen, nicht aber zitiert sind, dürfen nicht erfasst werden.“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 138
 
 ### `core.bib.doi-and-url`
 
@@ -110,6 +178,19 @@ An entry does not give the first edition.
 - Parameter `pattern`: `'(?i)^\\s*(?:1|1\\.|1st|first|erste)(?:\\s|$|\\.)'`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 208
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 182: „Handelt es sich um die erste Auflage, dann“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 141
+
+### `core.bib.english`
+
+The bibliography has at least one English source.
+
+- Default severity: error
+- Input: source
+- Parameter `language-fields`: `('langid', 'language')`
+- Parameter `english-values`: `('english', 'en', 'american', 'british', 'usenglish', 'ukenglish', 'en-us', 'en-gb')`
+- Parameter `english-stopwords`: `('the', 'and', 'of', 'for', 'with', 'in', 'on', 'to', 'a', 'an', 'from', 'by', 'is', 'are', 'towards', 'using', 'between', 'through')`
+- Parameter `german-stopwords`: `('der', 'die', 'das', 'und', 'für', 'von', 'zur', 'zum', 'mit', 'des', 'im', 'auf', 'über', 'eine', 'ein', 'einer', 'den', 'dem', 'bei', 'aus')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 45: „Jede Recherche muss die englischsprachige Literatur einschließen!“
 
 ### `core.bib.firstname-consistent`
 
@@ -119,17 +200,61 @@ Given names are either all written in full or all abbreviated.
 - Input: source
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 179: „dem Sie sich für eine Variante (Vorname ausschreiben oder abkürzen)“
 
+### `core.bib.grey-type`
+
+A report, a misc or an online entry tells the kind of the source.
+
+- Default severity: warning
+- Input: source
+- Parameter `types`: `('report', 'techreport', 'misc', 'online')`
+- Parameter `fields`: `('type', 'howpublished')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 140: „Die Art der Quelle sollte im Eintrag deutlich werden“
+
+### `core.bib.identifier`
+
+An article or a paper has a DOI, and a book has an ISBN.
+
+- Default severity: warning
+- Input: source
+- Parameter `types`: `('article: doi', 'inproceedings: doi', 'book: isbn')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 135: „Vollständige Bibliographische Daten bzw. ISBN oder DOI“
+
 ### `core.bib.not-citable`
 
-The bibliography does not cite Wikipedia or general encyclopedias.
+The bibliography does not cite Wikipedia, general encyclopedias or newspapers.
 
 - Default severity: error
 - Input: source
-- Parameter `domains`: `('wikipedia.org', 'wikibooks.org', 'wiktionary.org', 'britannica.com', 'brockhaus.de', 'duden.de', 'enzyklo.de')`
+- Parameter `domains`: `('wikipedia.org', 'wikibooks.org', 'wiktionary.org', 'britannica.com', 'brockhaus.de', 'duden.de', 'enzyklo.de', 'spiegel.de', 'zeit.de', 'faz.net', 'sueddeutsche.de', 'welt.de', 'n-tv.de', 'bild.de', 'focus.de', 'tagesschau.de', 'stern.de', 'handelsblatt.com', 'taz.de')`
 - Parameter `fields`: `('url', 'howpublished')`
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 144: „Wikipedia liefern keine zitierfähigen Informationen“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 220: „für wissenschaftliche Zwecke ansonsten verpönten“
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 72: „Allgemeine Lexika (auch wikipedia, google, …)“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 34: „Was darf in der wissenschaftlichen Argumentation nicht zitiert werden?“
+
+### `core.bib.online-durable`
+
+An internet source without a DOI has an archived copy.
+
+- Default severity: warning
+- Input: source
+- Parameter `types`: `('online',)`
+- Parameter `archives`: `('web.archive.org', 'archive.today', 'archive.ph', 'perma.cc')`
+- Parameter `trusted-domains`: `('eur-lex.europa.eu', 'health.ec.europa.eu', 'ec.europa.eu', 'fda.gov', 'webstore.iec.ch', 'iso.org', 'din.de', 'dinmedia.de')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 35: „wenn die Verfügbarkeit und Unabänderlichkeit gewährleistet ist“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 127
+- Source: Project decision, Literatur: „Offizielle Herausgeber gelten als dauerhaft verfügbar“
+
+### `core.bib.preprint`
+
+The bibliography does not cite preprints without peer review.
+
+- Default severity: warning
+- Input: source
+- Parameter `markers`: `('arXiv', 'medRxiv', 'bioRxiv', 'SSRN', 'ResearchGate', '10.48550')`
+- Parameter `fields`: `('eprinttype', 'archiveprefix', 'url', 'doi', 'journal', 'journaltitle', 'publisher', 'howpublished')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 32: „Quelle muss einem review Prozess unterworfen sein“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 39: „nicht zwingend einem review unterworfen!“
 
 ### `core.bib.questionable`
 
@@ -144,6 +269,8 @@ The bibliography has no unpublished sources, student theses or lecture notes.
 - Parameter `keyword-fields`: `('title', 'type', 'howpublished', 'note')`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 220: „Zitierfähig sind grundsätzlich nur Quellen, die beschaffbar“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 53: „studentische Arbeiten nicht zitierfähig“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 34: „Skripten zu Vorlesungen, Seminar- und Diplomarbeiten“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 110
 
 ### `core.bib.required-fields`
 
@@ -154,6 +281,7 @@ Each entry has the required fields of its type.
 - Parameter `types`: `('article: author, title, journaltitle|journal, year|date, volume, pages', 'book: author|editor, title, year|date, location|address, publisher', 'incollection: author, title, editor, booktitle, year|date, location|address, publisher, pages', 'inproceedings: author, title, booktitle, year|date, pages', 'online: author|organization, title, year|date, url, urldate', 'thesis: author, title, year|date, type, institution|school', 'misc: title, year|date')`
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), Tab. 7.1
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 208: „Name und Vorname des Verfassers, Titel und ggf. Untertitel“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 32, 129, 135
 
 ### `core.bib.urldate`
 
@@ -164,6 +292,7 @@ An entry with a URL has an access date in the format YYYY-MM-DD.
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Literaturverzeichnis: „neben der Angabe der URL und des Zugriffsdatums“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 233: „stets das Datum des letzten Aufrufs“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 181: „Onlinequellen bei der Zitation unbedingt mit dem Datum versehen“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 35, 136
 
 ### `core.cite.abstract`
 
@@ -173,6 +302,7 @@ The abstract has no citations.
 - Input: source
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 110
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 214
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 60
 
 ### `core.cite.block-quote`
 
@@ -182,15 +312,17 @@ A quotation with more than 40 words is a block quote.
 - Input: source
 - Parameter `max-words`: `40`
 - Source: Project decision, APA 6th edition, block quotation
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 110, 122, 124, 125
 
 ### `core.cite.cluster`
 
-A group of adjacent citations has at most four keys.
+A group of adjacent citations has a limited number of keys (default 4).
 
 - Default severity: warning
 - Input: source
 - Parameter `max-keys`: `4`
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 103
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 126: „Tipp: Zitieren Sie nur die „wichtigste“ Arbeit“
 
 ### `core.cite.consensus`
 
@@ -201,6 +333,7 @@ A sentence that claims a consensus cites at least two sources.
 - Parameter `phrases`: `('in der Literatur', 'in der Forschung', 'herrschende Meinung', 'h. M.', 'h.M.', 'allgemein anerkannt', 'weitgehend anerkannt', 'Konsens', 'einhellig', 'Einigkeit', 'die meisten Autoren', 'viele Autoren', 'zahlreiche Autoren', 'zahlreiche Studien', 'mehrere Studien', 'mehrere Autoren')`
 - Parameter `min-keys`: `2`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 230
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 126
 
 ### `core.cite.ellipsis`
 
@@ -214,23 +347,26 @@ An omission in a quotation is written [...] and not at its start or end.
 
 ### `core.cite.ff`
 
-Citations give exact page ranges and do not use 'ff.'.
+Citations give exact page ranges and do not use 'ff.' or 'f.'.
 
 - Default severity: error
 - Input: source
 - Parameter `pattern`: `'(?<![^\\W\\d_])ff\\.'`
+- Parameter `f-pattern`: `'(?<=\\d)\\s*f\\.(?!\\w)'`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 222 f.: „darauf folgenden Kürzel "ff." (fortfolgende)“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 128: „Auf Angaben wie 223 f. oder 223 ff. möglichst verzichten“
 
 ### `core.cite.foreign-quote`
 
-An English quotation has a translation in a footnote.
+A quotation is not in English. Translate it or paraphrase it.
 
-- Default severity: error
+- Default severity: warning
 - Input: source
 - Parameter `stopwords`: `('the', 'and', 'of', 'is', 'are', 'to', 'in', 'for', 'with', 'that', 'this', 'it', 'be', 'on', 'as', 'by', 'or', 'not', 'can', 'was', 'were', 'which', 'a', 'an')`
 - Parameter `min-share`: `0.2`
 - Parameter `min-words`: `4`
-- Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 228
+- Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 228: „Mit fremdsprachigen Zitaten ist äußerst sparsam umzugehen.“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 130: „andernfalls eigene Übersetzung bzw. indirektes Zitat“
 
 ### `core.cite.ibid`
 
@@ -240,6 +376,16 @@ Citations do not use 'ebd.', 'ebenda', 'a.a.O.' or 'derselbe'.
 - Input: source
 - Parameter `pattern`: `'(?i)(?<!\\w)(?:ebd\\.|ebenda\\b|a\\.\\s?a\\.\\s?O\\.|derselbe\\b)'`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 225
+
+### `core.cite.indirect-intro`
+
+A paraphrase of more than one sentence names its source at the start.
+
+- Default severity: warning
+- Input: source
+- Parameter `min-sentences`: `2`
+- Parameter `signals`: `('laut', 'zufolge', 'nach Ansicht', 'nach Auffassung', 'nach Meinung', 'beschreibt', 'beschreiben', 'berichtet', 'berichten', 'zeigt', 'zeigen', 'untersucht', 'untersuchen', 'definiert', 'definieren', 'betont', 'betonen', 'argumentiert', 'argumentieren', 'stellt fest', 'stellen fest', 'behauptet', 'behaupten', 'schreibt', 'schreiben', 'fasst', 'fassen', 'fordert', 'fordern', 'verlangt', 'verlangen', 'regelt', 'regeln', 'Studie', 'Autor', 'Autoren', 'Autorin', 'Autorinnen')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 123: „muss eine Einleitung den Beginn des indirekten Zitats andeuten“
 
 ### `core.cite.laut-subjunctive`
 
@@ -251,6 +397,15 @@ A sentence with 'laut' or 'nach' uses the indicative, not the subjunctive.
 - Parameter `verbs`: `('sei', 'seien', 'habe', 'könne', 'werde', 'müsse')`
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 124: „Wiedergabefloskeln“
 
+### `core.cite.page-required`
+
+Each citation gives a page, for example @key[S. 223] or @key[S. 223-227].
+
+- Default severity: error
+- Input: source
+- Parameter `page-pattern`: `'(?<![^\\W\\d_])(?:S\\.|pp?\\.)\\s*\\d'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 128: „Im SAT-Kurs ist diese Anforderung ein Muss-Kriterium.“
+
 ### `core.cite.quote-needs-key`
 
 Each text in double quotes is a quotation with a citation in the same sentence.
@@ -259,6 +414,7 @@ Each text in double quotes is a quotation with a citation in the same sentence.
 - Input: source
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 128
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 145, 206
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 111, 122
 
 ### `core.cite.quote-page`
 
@@ -268,6 +424,7 @@ The citation of a quotation gives the page.
 - Input: source
 - Parameter `page-pattern`: `'S\\.\\s*\\d|p\\.\\s*\\d|pp\\.|\\d'`
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 128 f.
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 128: „Seitenangaben sind beim Literaturverweis obligatorisch!“
 
 ### `core.cite.quote-share`
 
@@ -279,6 +436,7 @@ At most 10 % of the words are literal quotations.
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 145
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 101
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 228
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 110, 122, 124, 125
 
 ### `core.cite.reporting-unsourced`
 
@@ -288,6 +446,16 @@ A paragraph that reports the view of others cites a source.
 - Input: source
 - Parameter `signals`: `('laut', 'zufolge', 'nach Ansicht', 'nach Auffassung', 'nach Meinung', 'betont', 'betonen', 'argumentiert', 'argumentieren', 'stellt fest', 'stellen fest', 'weist darauf hin', 'weisen darauf hin', 'behauptet', 'behaupten', 'vertritt die Auffassung', 'vertreten die Auffassung', 'kritisiert', 'kritisieren', 'konstatiert', 'konstatieren', 'postuliert', 'postulieren', 'hebt hervor', 'heben hervor')`
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 125: „Wiedergabefloskeln“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 110, 111
+
+### `core.cite.same-author-cluster`
+
+A group of adjacent citations does not cite two works of the same first author.
+
+- Default severity: error
+- Input: source
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 126: „nicht aus mehreren Quellen desselben Autors bestehen“
+- Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 204
 
 ### `core.cite.secondary`
 
@@ -298,6 +466,8 @@ Citations do not use secondary sources ('zitiert nach').
 - Parameter `pattern`: `'(?i)\\bzit(?:\\.|iert)\\s*nach\\b'`
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 145: „zit. nach Ebel 2006, 34“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 230: „[zitiert nach“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 119: „allgemein auch nicht zulässig“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 131: „Es muss in jedem Fall das Originalzitat (Primärquelle) verwendet werden!“
 
 ### `core.cite.software`
 
@@ -317,6 +487,15 @@ A sentence with percentages or statistics cites a source.
 - Input: source
 - Parameter `pattern`: `'\\d[\\d.,]*\\s*(?:%|Prozent)|\\bProzentpunkt|\\bStatistik(?:en)?\\b|\\bstatistisch\\w*\\s+(?:belegt|signifikant|erhoben|nachgewiesen)'`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 221
+
+### `core.cite.vgl-apa`
+
+A citation in APA style has no 'vgl.' or 'siehe' before it.
+
+- Default severity: warning
+- Input: source
+- Parameter `pattern`: `'(?i)(?<![^\\W\\d_])(?:vgl\\.|siehe)\\s*[(\\[]?\\s*$'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 123: „Bei der Harvard-Zitiertechnik entfallen diese Floskeln.“
 
 ### `core.conclusion.apology`
 
@@ -366,6 +545,8 @@ A caption that names a foreign source cites it with @key.
 - Parameter `patterns`: `('(?i)(?<!\\w)Quelle(?!\\w)', '(?i)(?<!\\w)in Anlehnung an(?!\\w)', '(?i)(?<!\\w)übernommen(?!\\w)', '(?i)(?<!\\w)verändert nach(?!\\w)', '(?<!\\w)(?:[Nn]ach|[Aa]us) [A-ZÄÖÜ][\\w.-]*(?: [A-ZÄÖÜ&][\\w.-]*)* \\(')`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Abbildungen: „die Quelle der Abbildung muss angegeben und im Literaturverzeichnis referenziert werden“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 145: „Auch bei der Übernahme von Tabellen und Abbildungen (vgl. Kap. 6.3) muss der/die Urheber/in angegeben werden.“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 35: „Urheberrechtsverletzungen möglich, wenn Quelle geschütztes Material verwendet“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 110: „auch das Design (z.B. bei Bildzitaten) bzw. die wörtliche Formulierung sind geschützt“
 
 ### `core.figure.numbering`
 
@@ -377,13 +558,14 @@ Figures and tables keep the template numbering per chapter and per kind.
 
 ### `core.figure.own-figure`
 
-A caption does not say 'eigene Darstellung'.
+No caption and no note in the text says 'eigene Darstellung' or 'eigener Text'.
 
 - Default severity: error
 - Input: source
-- Parameter `patterns`: `('\\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle)',)`
+- Parameter `patterns`: `('\\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle|Text)\\b',)`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Abbildungen: „Dementsprechend dürfen selbst erstellte Abbildungen nicht mit Angaben wie „eigene Abbildung“ o.ä. versehen werden.“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 197: „Auf derartige Bemerkungen sollte jedoch verzichtet werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 114: „unsinnig bestimmte Teile Ihrer Arbeit mit der Bemerkung „eigener Text“ oder „eigene Abbildung“ zu versehen“
 
 ### `core.figure.ref-before`
 
@@ -435,6 +617,7 @@ The text uses the glossary function for each glossary term, not its raw name.
 - Input: source
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 104: „Sie dürfen nicht durch alternative Wörter ersetzt werden“
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 112: „zentrale Fachbegriffe beizubehalten und nicht durch Wörter (...) zu ersetzen“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 100: „Achten Sie auf die einheitliche Verwendung von Fachbegriffen“
 
 ### `core.heading.abbreviation`
 
@@ -606,6 +789,40 @@ A heading is in the nominal style and is not a sentence (heuristic).
 - Parameter `words`: `('ist', 'sind', 'war', 'waren', 'wird', 'werden', 'wurde', 'wurden', 'hat', 'haben', 'hatte', 'hatten', 'habe', 'bin', 'kann', 'können', 'konnte', 'muss', 'müssen', 'musste', 'soll', 'sollen', 'sollte', 'darf', 'dürfen', 'lässt', 'lassen', 'gibt', 'zeigt', 'zeigen')`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 168: „Gliederungen dürfen keine kompletten Sätze beinhalten; der Verfasser darf sich keiner Verben, sondern nur ihrer substantivierten Form bedienen (Nominalstil).“
 
+### `core.hypothesis.statement`
+
+The working hypothesis is a statement: it ends with a period and has no question.
+
+- Default severity: error
+- Input: source
+- Parameter `title`: `'Arbeitshypothese'`
+- Parameter `placeholder-pattern`: `'^\\[.*\\]$'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 26: „Eine Hypothese ist eine überprüfbare Aussage“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 28: „Die wissenschaftliche Fragestellung wird als Arbeitshypothese formuliert“
+
+### `core.hypothesis.verdict`
+
+The discussion or the conclusion says if the hypothesis is confirmed or rejected.
+
+- Default severity: warning
+- Input: source
+- Parameter `chapters`: `('Diskussion', 'Zusammenfassung')`
+- Parameter `subject`: `'hypothese'`
+- Parameter `verbs`: `('bestätigt', 'widerlegt', 'verifiziert', 'falsifiziert', 'stützen', 'stützt', 'angenommen', 'verworfen', 'abgelehnt')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 59: „Verifizierung oder Falsifizierung der Hypothese“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 74: „Wie sind die Ergebnisse aus Sicht des Autors zu bewerten?“
+
+### `core.intro.guiding-questions`
+
+The introduction names the guiding questions ('Leitfragen').
+
+- Default severity: warning
+- Input: source
+- Parameter `chapter`: `'Einleitung'`
+- Parameter `terms`: `('Leitfrage',)`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 28: „Zum Nachweis der Gültigkeit der Arbeitshypothese werden Leitfragen formuliert“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 30: „Anhand der Antworten auf die Leitfragen soll sich die Hypothese prüfen lassen.“
+
 ### `core.intro.no-figure`
 
 The introduction contains no figures and no tables.
@@ -651,6 +868,20 @@ Each block equation keeps its number.
 - Default severity: error
 - Input: source
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Formeln: „Jede Formel ist über eine fortlaufend aufsteigend zu vergebende Nummer zu kennzeichnen.“
+
+### `core.methods.literature-search`
+
+The methods name the search systems, search terms, period and selection criteria.
+
+- Default severity: warning
+- Input: source
+- Parameter `chapter`: `'Methoden'`
+- Parameter `systems`: `('EDDI', 'Nautos', 'PubMed', 'IEEE Xplore', 'Google Scholar', 'ScienceDirect', 'Cochrane', 'Scopus', 'Web of Science', 'arXiv', 'Consensus', 'KVK', 'Springer')`
+- Parameter `search-terms`: `('Suchbegriff', 'Suchstring', 'Schlagw(?:o|ö)rt')`
+- Parameter `period`: `('\\b(?:19|20)\\d{2}\\b', 'Zeitraum')`
+- Parameter `criteria`: `('Kriteri', 'Einschluss', 'Ausschluss')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 71: „Wann, wo, in welchem Kontext und über welchen Zeitraum wurden die Daten erhoben?“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 72: „Gut: Angabe wo und wie gesucht wurde“
 
 ### `core.number.decimal`
 
@@ -731,7 +962,9 @@ The text has no unmarked word sequences from the source PDFs.
 - Default severity: error
 - Input: sources-dir
 - Parameter `n`: `6`
+- Parameter `min-chars`: `25`
 - Source: Lange 2018, Fachtexte lesen - verstehen - wiedergeben, S. 114
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folien 12, 112, 124
 
 ### `core.ref.forward`
 
@@ -742,6 +975,35 @@ The text does not refer to later sections. The outline overview in the introduct
 - Parameter `excluded-chapters`: `()`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 195: „insbesondere Vorverweise sind nur im Ausnahmefall zu verwenden, denn der Autor sollte nicht auf Sachverhalte verweisen, die der Leser nicht einschätzen kann“
 
+### `core.results.has-figure`
+
+The results chapter shows the results in at least one figure or table.
+
+- Default severity: warning
+- Input: source
+- Parameter `chapter`: `'Ergebnisse'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 73: „nicht geeignet: Beschreibung der Daten in verbaler Form“
+
+### `core.results.not-in-discussion`
+
+The discussion and the conclusion contain no figures and no tables.
+
+- Default severity: warning
+- Input: source
+- Parameter `chapters`: `('Diskussion', 'Zusammenfassung')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 104: „Ergebnisse werden im Diskussionsteil, der Zusammenfassung oder dem Ausblick erstmals präsentiert“
+
+### `core.section.background-share`
+
+Background sections take at most 15 % of the words of the body.
+
+- Default severity: warning
+- Input: source
+- Parameter `title-pattern`: `'Grundlagen|Hintergrund|Stand der (?:Technik|Forschung|Wissenschaft)'`
+- Parameter `max-share`: `0.15`
+- Parameter `body-chapters`: `('Einleitung', 'Methoden', 'Ergebnisse', 'Diskussion', 'Zusammenfassung')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 91: „sollte der Anteil dieser Wiederholungen nie mehr als 15% des Gesamtumfanges der Arbeit ausmachen“
+
 ### `core.section.balance`
 
 The main chapters have a similar length (factor at most 3).
@@ -751,6 +1013,8 @@ The main chapters have a similar length (factor at most 3).
 - Parameter `chapters`: `('Methoden', 'Ergebnisse', 'Diskussion')`
 - Parameter `max-factor`: `3.0`
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 155: „dass die Gliederungshauptpunkte (ohne Einleitung und Schluss) in einem annähernd gleichen Textumfang bearbeitet werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 56: „Angewandte Methoden, Ergebnisse, Diskussion pro und kontra“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 57: „Für Bearbeitung (Methoden und Ergebnisse): Eingrenzung der Fragestellung“
 
 ### `core.section.min-sentences`
 
@@ -783,6 +1047,16 @@ The running text does not use bold or underlined text.
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Zeichenformate: „Auf Hervorhebungen von Text mittels Fettdruck, Unterstreichungen, etc. soll (...)“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 202: „Grundsätzlich werden Wörter im Fließtext weder unterstrichen noch fett gesetzt.“
 
+### `core.style.compound-hyphen`
+
+A compound noun is one word, not two nouns with a hyphen.
+
+- Default severity: warning
+- Input: source
+- Parameter `language`: `'de_DE'`
+- Parameter `dictionary`: `'dictionary.txt'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 94: „Deutsche, schreibt mehr zusammen!“
+
 ### `core.style.emotional`
 
 The text does not use emotional or judging words.
@@ -809,7 +1083,8 @@ The text does not use filler words.
 
 - Default severity: error
 - Input: source
-- Parameter `words`: `('also', 'dann', 'auch', 'nun', 'gewissermaßen', 'sozusagen', 'eigentlich')`
+- Parameter `words`: `('also', 'dann', 'auch', 'nun', 'gewissermaßen', 'sozusagen', 'eigentlich', 'einigermaßen', 'schlichtweg', 'offenbar')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 89: „Beispiele für Füllwörter: also, einigermaßen, sozusagen, schlichtweg“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 181: „Füllwörter wie also, dann, auch, nun etc. (...) wieder eliminiert werden.“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 106: „Füllwörter wie gewissermaßen, sozusagen oder eigentlich schränken (...) ein.“
 
@@ -817,9 +1092,10 @@ The text does not use filler words.
 
 The text does not use the first person singular.
 
-- Default severity: warning
+- Default severity: error
 - Input: source
 - Parameter `words`: `('ich', 'mich', 'mir', 'mein', 'meine', 'meiner', 'meinem', 'meinen', 'meines', 'm. E.')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 89: „Sachverhalte werden nicht aus der Ich- oder Wir-Perspektive beschrieben!“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 103: „Subjektive Ansichten, wie sie das Personalpronomen ich (...) signalisieren“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 197 f.: „sei allen Prüflingen geraten, die Ich-Form zu vermeiden“
 
@@ -860,6 +1136,15 @@ The text does not use sweeping generalizations.
 - Input: source
 - Parameter `words`: `('generell', 'grundsätzlich', 'traditionell*', 'klassisch*', 'weltweit*', 'die Menschheit', 'schon immer')`
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 106: „generell, grundsätzlich, traditionell, klassisch, weltweit oder die Menschheit“
+
+### `core.style.indem`
+
+'indem' does not follow a noun. A relative clause uses 'in dem'.
+
+- Default severity: warning
+- Input: source
+- Parameter `articles`: `('das', 'ein', 'einem', 'einer', 'dem')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 101: „„indem“ – dadurch dass … : macht hier keinen Sinn“
 
 ### `core.style.long-parens`
 
@@ -952,11 +1237,12 @@ Three sentences in a row do not start with the same word.
 
 ### `core.style.sentence-length`
 
-A sentence has at most 25 words.
+A sentence has at most 20 words.
 
 - Default severity: warning
 - Input: source
-- Parameter `max-words`: `25`
+- Parameter `max-words`: `20`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 99: „Sätze in der Länge begrenzen (15 – 20 Wörter ideal)“
 - Source: Brink 2013, Anfertigung wissenschaftlicher Arbeiten, S. 178: „Lange Sätze erschweren das Verständnis und bereiten dem Leser unnötig Mühe.“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 199: „Lange Sätze, die mehrere Zeilen umfassen (...), sind (...) schwer zu lesen.“
 
@@ -978,6 +1264,25 @@ The text does not use 'sogenannt'.
 - Parameter `words`: `('sog.', 'sogenannt*', 'so genannt*')`
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 202: „ist es nicht nötig, diesen mit „sogenannt“ einzuleiten.“
 
+### `core.style.sondern-comma`
+
+A comma comes before the conjunction 'sondern'.
+
+- Default severity: error
+- Input: source
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 96: „dass vor die Konjunktion sondern immer ein Komma zu setzen ist“
+
+### `core.style.spelling`
+
+The text has no spelling errors (hunspell de_DE and the project dictionary with one `word` or `word/model` on each line).
+
+- Default severity: error
+- Input: source
+- Parameter `language`: `'de_DE'`
+- Parameter `dictionary`: `'dictionary.txt'`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 92: „Rechtschreibfehler sind (...) nicht akzeptabel!“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 93: „Einfach nur peinlich!“
+
 ### `core.style.subclauses`
 
 A sentence has at most two subordinate clauses.
@@ -985,7 +1290,20 @@ A sentence has at most two subordinate clauses.
 - Default severity: warning
 - Input: source
 - Parameter `max-subclauses`: `2`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 99: „Verschachtelte Nebensätze vermeiden“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 98: „Mehr als zwei Nebensätze machen es dem Leser schwer, sich im Satz zu orientieren“
+
+### `core.style.tense`
+
+The text is in the present tense. Only the chapter 'Methoden' uses the preterite.
+
+- Default severity: warning
+- Input: source
+- Parameter `allowed-chapters`: `('Methoden',)`
+- Parameter `forms`: `('war', 'waren', 'wurde', 'wurden', 'hatte', 'hatten', 'zeigte', 'zeigten', 'ergab', 'ergaben', 'untersuchte', 'untersuchten', 'fand', 'fanden', 'gab', 'gaben', 'kam', 'kamen', 'lag', 'lagen', 'blieb', 'blieben', 'ging', 'gingen', 'stellte', 'stellten', 'führte', 'führten', 'nutzte', 'nutzten', 'verwendete', 'verwendeten', 'analysierte', 'analysierten', 'bestätigte', 'bestätigten', 'erfolgte', 'erfolgten', 'lieferte', 'lieferten', 'betrug', 'betrugen', 'konnte', 'konnten', 'musste', 'mussten')`
+- Parameter `passive`: `True`
+- Source: SAT FactSheet, 2025-03-19, Wichtige stilistische Merkmale: „Der gesamte Text muss hauptsächlich im Präsens verfasst werden.“
+- Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 101: „Lediglich die Darstellung konkreter einmaliger Tätigkeiten (...) im Präteritum“
 
 ### `core.style.vague`
 
@@ -1000,9 +1318,10 @@ The text does not use vague words.
 
 The text does not use the first person plural.
 
-- Default severity: warning
+- Default severity: error
 - Input: source
 - Parameter `words`: `('wir', 'uns', 'unser', 'unsere', 'unserer', 'unserem', 'unseren', 'unseres')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 89: „Sachverhalte werden nicht aus der Ich- oder Wir-Perspektive beschrieben!“
 - Source: Hirsch-Weber/Scherer 2016, Wissenschaftliches Schreiben (UTB 4450), S. 103: „den Leser durch die erste Person Plural (wir) in den Text einzubeziehen“
 
 ### `core.table.footnote`
@@ -1092,6 +1411,10 @@ The appendix has a section with the working hypothesis, and the section has text
 - Parameter `placeholder-pattern`: `'^\\[.*\\]$'`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Anhang: „Arbeitshypothese: [Hier die Arbeitshypothese eintragen]“
 - Source: SAT-Richtlinie meti, Version 10.0, S. 10: „Die Arbeitshypothese ist die zentrale Aussage“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 26: „Eine Hypothese ist eine überprüfbare Aussage“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 28: „Die wissenschaftliche Fragestellung wird als Arbeitshypothese formuliert“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 30: „Arbeitshypothese: C ist schneller als Java“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 78: „Folgendes muss festgelegt sein: ... Hypothese und Leitfragen“
 
 ### `sat.appendix-projectplan`
 
@@ -1104,6 +1427,8 @@ The appendix has a section with the project plan as a figure with an image.
 - Parameter `figure-kind`: `'image'`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Anhang: „Projektplan: [Hier das Gantt-Diagramm einfügen“
 - Source: SAT-Richtlinie meti, Version 10.0, S. 11: „Im Anhang des Entwurfsdokumentes muss ein Gantt-Diagramm enthalten sein“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 20: „Planung der Umsetzung (Arbeitspakete, Termine)“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 79: „Damit inhaltliche und zeitliche Ziele erreicht werden, ist Planung des Prozesses“
 
 ### `sat.bib-count`
 
@@ -1117,6 +1442,8 @@ The bibliography has at least 8 entries. At least 5 of them are original works.
 - Parameter `thesis-types`: `('thesis',)`
 - Parameter `doctoral-values`: `('phd', 'phdthesis', 'dissertation')`
 - Source: SAT-Richtlinie meti, Version 10.0, S. 10: „mindestens 8 Quellen hiervon mindestens 5 Quellen in Form von Originalarbeiten“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 33: „Nach erfolgreichem Durchlauf des reviews ... → zitierfähig!“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 135: „Vollständige Bibliographische Daten bzw. ISBN oder DOI müssen vorhanden sein“
 
 ### `sat.citation-style`
 
@@ -1126,6 +1453,8 @@ The bibliography uses the APA 6th edition CSL file.
 - Input: source
 - Parameter `csl-file`: `'apa-6th-edition.csl'`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Zitate: „Hinweise auf die verwendete Literatur im Stil APA 6th“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 141: „Wichtig: Vorgaben müssen exakt eingehalten werden!“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 150: „Erstellt mittels Citavi Ver. 5.6.0.2, im Stil APA 6th ed.“
 
 ### `sat.declaration`
 
@@ -1137,6 +1466,8 @@ The declaration has the exact text of the template.
 - Parameter `function`: `'declaration'`
 - Parameter `text`: `('Hiermit erkläre ich an Eides statt, dass ich die vorliegende Arbeit selbstständig', 'erstellt, keine nicht genannte fremde Hilfe in Anspruch genommen und alle von mir', 'verwendeten Hilfsmittel und Quellen in der Arbeit benannt und kenntlich gemacht habe.', 'Die Arbeit oder Teile davon wurden in keinem Prüfungsmodul zur Prüfung vorgelegt und', 'verletzt in keiner Weise Rechte Dritter.', 'Mir ist bekannt, dass eine unwahre Erklärung als Täuschung gewertet wird.')`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Gliederung des Textes: „Eidesstattliche Erklärung: Der hier im Dokument gegebene Text muss übernommen werden.“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 146: „Am Ende der schriftlichen Ausarbeitung steht zumeist eine eidesstattliche Erklärung“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 147: „Einhaltung der formellen Vorgaben“
 
 ### `sat.directories`
 
@@ -1149,6 +1480,9 @@ The PDF has all six lists: contents, figures, tables, equations, acronyms, gloss
 - Parameter `h1-pt`: `16.0`
 - Parameter `tolerance-pt`: `0.3`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Gliederung des Textes: „mit Ausnahme des Abschnitts „Verzeichnisse““
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 56: „Inhaltsverzeichnis“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 97: „Erklären Sie die Bedeutung von Abkürzungen, bevor diese fortgesetzt verwendet werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 100: „zusätzlich soll ein Abkürzungsverzeichnis verwendet werden“
 
 ### `sat.figure-ref-parens`
 
@@ -1213,6 +1547,20 @@ The document has exactly 5 German and 5 English keywords.
 - Parameter `german-setting`: `'keywords'`
 - Parameter `english-setting`: `'keywords-en'`
 - Source: SAT-Richtlinie meti, Version 10.0, S. 9: „Es müssen 5 sogenannte Keywords in deutscher und in englischer Sprache benannt werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 56: „Deckblatt: ... Abstract, Keywords“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 68: „Möglichst englische Keywords verwenden oder Übersetzungen angeben“
+
+### `sat.keywords-title`
+
+No keyword repeats a word of the title.
+
+- Default severity: warning
+- Input: source
+- Parameter `german-setting`: `'keywords'`
+- Parameter `english-setting`: `'keywords-en'`
+- Parameter `title-setting`: `'title'`
+- Parameter `endings`: `('e', 'en', 'n', 's', 'es', 'er', 'ern')`
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 68: „Keywords sollen nicht die Begriffe aus dem Titel wiederholen“
 
 ### `sat.layout.chapter-pagebreak`
 
@@ -1299,6 +1647,7 @@ The text is justified. Each line except the last of a paragraph ends at the marg
 - Parameter `max-gap-em`: `2.0`
 - Source: Project decision, Template variant: „BLOCKSATZ (Formatvorlage Standard justify)“
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Textabsätze: „dass jede Zeile möglichst bis zum Zeilenrand beschrieben ist“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 103: „Blocksatz verwenden oder Worttrennung durchführen, wenn Flattersatz zu extrem“
 
 ### `sat.layout.margins`
 
@@ -1354,6 +1703,8 @@ The level-1 headings are exactly the chapters of the SAT template, in this order
 - Parameter `chapters`: `('Einleitung', 'Methoden', 'Ergebnisse', 'Diskussion', 'Zusammenfassung', 'Literaturverzeichnis', 'Danksagungen', 'Eidesstattliche Erklärung', 'Anhang')`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Gliederung des Textes: „muss die nachfolgend gegebene Gliederung aufweisen (Hauptüberschriften)“
 - Source: SAT-Richtlinie meti, Version 10.0, S. 10: „Die Hauptgliederung ist in SAT fix vorgegeben und einzuhalten.“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 56: „Einleitung /Hintergrund/ Stand der Forschung, Ziele, Angewandte Methoden, Ergebnisse“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 57: „IMRaD structure: Introduction, Methods, Results and Discussion“
 
 ### `sat.paragraph-length`
 
@@ -1381,6 +1732,8 @@ The folder sources has one PDF for each entry in the bibliography and no other P
 - Input: sources-dir
 - Submission rule: warning in the draft profile
 - Source: SAT-Richtlinie meti, Version 10.0, S. 12: „aufgeführten Quellen müssen […] als pdf-Dokument abgegeben werden“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 14: „Studierende müssen alle Quellen als zip-File abgeben“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 15: „Studierende müssen alle Quellen als zip-File abgeben“
 
 ### `sat.titlepage-date`
 
@@ -1393,6 +1746,7 @@ The submission date on the title page has the format DD.MM.YYYY.
 - Parameter `pattern`: `'\\d{2}\\.\\d{2}\\.\\d{4}'`
 - Parameter `date-format`: `'%d.%m.%Y'`
 - Source: Dokumentvorlage Seminararbeit, Ver. 7.4, Titelseite: „vorgelegt am: 12.12.20xx“
+- Source: Steddin, SAT S2026, VL02 Grundbegriffe, Folie 56: „Deckblatt: Titel, Autoren, Datum, Anschrift des Fachbereichs“
 
 ### `sat.wordcount`
 
