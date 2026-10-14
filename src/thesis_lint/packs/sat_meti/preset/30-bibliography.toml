@@ -1,3 +1,50 @@
 # Rule settings of the area "bibliography".
 
 [rules."core.bib.urldate"]
+
+[rules."core.bib.required-fields"]
+types = [
+  "article: author, title, journaltitle|journal, year|date, volume, pages",
+  "book: author|editor, title, year|date, location|address, publisher",
+  "incollection: author, title, editor, booktitle, year|date, location|address, publisher, pages",
+  "inproceedings: author, title, booktitle, year|date, pages",
+  "online: author|organization, title, year|date, url, urldate",
+  "thesis: author, title, year|date, type, institution|school",
+  "misc: title, year|date",
+]
+
+[rules."core.bib.cited"]
+
+[rules."core.bib.author-present"]
+fields = ["author", "editor", "organization", "institution"]
+
+[rules."core.bib.academic-title"]
+titles = ["Dr.", "Prof.", "Dipl.", "M.Sc.", "B.Sc."]
+
+[rules."core.bib.edition-one"]
+pattern = '(?i)^\s*(?:1|1\.|1st|first|erste)(?:\s|$|\.)'
+
+[rules."core.bib.not-citable"]
+domains = [
+  "wikipedia.org",
+  "wikibooks.org",
+  "wiktionary.org",
+  "britannica.com",
+  "brockhaus.de",
+  "duden.de",
+  "enzyklo.de",
+]
+fields = ["url", "howpublished"]
+
+[rules."core.bib.duplicate"]
+
+[rules."core.bib.doi-and-url"]
+
+[rules."core.bib.questionable"]
+types = ["unpublished"]
+thesis-types = ["Seminar", "Bachelor", "Master", "Diplom"]
+student-entry-types = ["mastersthesis"]
+keywords = ["Skript"]
+keyword-fields = ["title", "type", "howpublished", "note"]
+
+[rules."core.bib.firstname-consistent"]

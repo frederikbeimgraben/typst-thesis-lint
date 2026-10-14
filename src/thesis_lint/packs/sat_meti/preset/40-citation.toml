@@ -1,1 +1,100 @@
 # Rule settings of the area "citation".
+
+[rules."core.cite.quote-needs-key"]
+
+[rules."core.cite.quote-page"]
+page-pattern = 'S\.\s*\d|p\.\s*\d|pp\.|\d'
+
+[rules."core.cite.ellipsis"]
+
+[rules."core.cite.abstract"]
+
+[rules."core.cite.consensus"]
+phrases = [
+  "in der Literatur",
+  "in der Forschung",
+  "herrschende Meinung",
+  "h. M.",
+  "h.M.",
+  "allgemein anerkannt",
+  "weitgehend anerkannt",
+  "Konsens",
+  "einhellig",
+  "Einigkeit",
+  "die meisten Autoren",
+  "viele Autoren",
+  "zahlreiche Autoren",
+  "zahlreiche Studien",
+  "mehrere Studien",
+  "mehrere Autoren",
+]
+min-keys = 2
+
+[rules."core.cite.statistics"]
+pattern = '\d[\d.,]*\s*(?:%|Prozent)|\bProzentpunkt|\bStatistik(?:en)?\b|\bstatistisch\w*\s+(?:belegt|signifikant|erhoben|nachgewiesen)'
+
+[rules."core.cite.laut-subjunctive"]
+marker-pattern = '^\W*(?:Laut|Nach)\s|\blaut\s'
+verbs = ["sei", "seien", "habe", "könne", "werde", "müsse"]
+
+[rules."core.cite.ibid"]
+pattern = '(?i)(?<!\w)(?:ebd\.|ebenda\b|a\.\s?a\.\s?O\.|derselbe\b)'
+
+[rules."core.cite.ff"]
+pattern = '(?<![^\W\d_])ff\.'
+
+[rules."core.cite.quote-share"]
+max-share = 0.10
+
+[rules."core.cite.cluster"]
+max-keys = 4
+
+[rules."core.cite.block-quote"]
+max-words = 40
+
+[rules."core.cite.secondary"]
+pattern = '(?i)\bzit(?:\.|iert)\s*nach\b'
+
+[rules."core.cite.reporting-unsourced"]
+signals = [
+  "laut",
+  "zufolge",
+  "nach Ansicht",
+  "nach Auffassung",
+  "nach Meinung",
+  "betont",
+  "betonen",
+  "argumentiert",
+  "argumentieren",
+  "stellt fest",
+  "stellen fest",
+  "weist darauf hin",
+  "weisen darauf hin",
+  "behauptet",
+  "behaupten",
+  "vertritt die Auffassung",
+  "vertreten die Auffassung",
+  "kritisiert",
+  "kritisieren",
+  "konstatiert",
+  "konstatieren",
+  "postuliert",
+  "postulieren",
+  "hebt hervor",
+  "heben hervor",
+]
+
+[rules."core.cite.foreign-quote"]
+stopwords = [
+  "the", "and", "of", "is", "are", "to", "in", "for", "with", "that", "this", "it",
+  "be", "on", "as", "by", "or", "not", "can", "was", "were", "which", "a", "an",
+]
+min-share = 0.2
+min-words = 4
+
+[rules."core.cite.software"]
+# The project config gives the software and data set names.
+terms = []
+
+[rules."core.plagiarism.ngram"]
+n = 6

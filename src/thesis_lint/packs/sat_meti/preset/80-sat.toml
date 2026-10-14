@@ -1,1 +1,213 @@
 # Rule settings of the area "sat".
+# The SAT rules of the seminar meTI. The values come from the SAT guideline,
+# the SAT document template and the decisions of the project. RULES.md shows
+# the source of each rule.
+
+[rules."sat.abbrev-style"]
+abbreviations = ["z.B.", "d.h.", "u.a.", "bzw.", "ggf.", "usw."]
+
+[rules."sat.abstract-length"]
+min-words = 120
+max-words = 160
+page-index = 1
+label = "Abstract:"
+end-labels = ["Keywords:", "Schlüsselwörter:"]
+next-page-title = "Inhalt"
+
+[rules."sat.appendix-hypothesis"]
+appendix-title = "Anhang"
+title = "Arbeitshypothese"
+placeholder-pattern = '^\[.*\]$'
+
+[rules."sat.appendix-projectplan"]
+appendix-title = "Anhang"
+title = "Projektplan"
+figure-kind = "image"
+
+[rules."sat.bib-count"]
+min-entries = 8
+min-original = 5
+original-types = [
+  "article",
+  "inproceedings",
+  "book",
+  "incollection",
+  "inbook",
+  "phdthesis",
+]
+thesis-types = ["thesis"]
+doctoral-values = ["phd", "phdthesis", "dissertation"]
+
+[rules."sat.citation-style"]
+csl-file = "apa-6th-edition.csl"
+
+[rules."sat.declaration"]
+title = "Eidesstattliche Erklärung"
+function = "declaration"
+text = [
+  "Hiermit erkläre ich an Eides statt, dass ich die vorliegende Arbeit selbstständig",
+  "erstellt, keine nicht genannte fremde Hilfe in Anspruch genommen und alle von mir",
+  "verwendeten Hilfsmittel und Quellen in der Arbeit benannt und kenntlich gemacht habe.",
+  "Die Arbeit oder Teile davon wurden in keinem Prüfungsmodul zur Prüfung vorgelegt und",
+  "verletzt in keiner Weise Rechte Dritter.",
+  "Mir ist bekannt, dass eine unwahre Erklärung als Täuschung gewertet wird.",
+]
+
+[rules."sat.directories"]
+layout = "sat-meti"
+titles = [
+  "Inhalt",
+  "Abbildungsverzeichnis",
+  "Tabellenverzeichnis",
+  "Formelverzeichnis",
+  "Abkürzungsverzeichnis",
+  "Glossar",
+]
+h1-pt = 16.0
+tolerance-pt = 0.3
+
+[rules."sat.figure-ref-parens"]
+label-prefixes = ["fig:", "tab:"]
+
+[rules."sat.filename"]
+ew-prefix = "SAT2_EW_"
+fa-prefix = "SAT3_FA_"
+sa32-prefix = "SAT3_SA32_"
+output-dir = "build"
+author-setting = "author"
+
+[rules."sat.footnote-lines"]
+max-lines = 4
+footnote-pt = 10.0
+tolerance-pt = 0.3
+start-heading = "Einleitung"
+
+[rules."sat.improvements"]
+appendix-title = "Anhang"
+title = "Verbesserungsvorschläge"
+level = 4
+id-pattern = '^VS\d{3}'
+
+[rules."sat.keywords"]
+count = 5
+german-setting = "keywords"
+english-setting = "keywords-en"
+
+[rules."sat.layout.chapter-pagebreak"]
+h1-pt = 16.0
+tolerance-pt = 0.3
+
+[rules."sat.layout.font-sizes"]
+title-pt = 24.0
+normal-pt = 12.0
+h1-pt = 16.0
+h2-pt = 14.0
+lists-pt = 10.0
+header-pt = 12.0
+footer-pt = 10.0
+footnote-pt = 10.0
+abstract-pt = 10.0
+tolerance-pt = 0.3
+abstract-page = 1
+list-titles = [
+  "Inhalt",
+  "Abbildungsverzeichnis",
+  "Tabellenverzeichnis",
+  "Formelverzeichnis",
+  "Abkürzungsverzeichnis",
+  "Glossar",
+]
+exempt-fonts = ["NewCMMath", "NewCM", "DejaVuSansMono", "DejaVuMath"]
+
+[rules."sat.layout.fonts"]
+text-fonts = ["Libre Franklin", "Franklin Gothic"]
+serif-fonts = ["TeX Gyre Termes", "Times New Roman"]
+exempt-fonts = ["NewCMMath", "NewCM", "DejaVuSansMono", "DejaVuMath"]
+abstract-page = 1
+caption-pattern = '^(Abbildung|Tabelle|Formel) [\d.]+ : '
+list-titles = [
+  "Inhalt",
+  "Abbildungsverzeichnis",
+  "Tabellenverzeichnis",
+  "Formelverzeichnis",
+  "Abkürzungsverzeichnis",
+  "Glossar",
+]
+
+[rules."sat.layout.header-footer"]
+header-text = "Hochschule Reutlingen – Fakultät Informatik – Studiengang meti"
+title-setting = "title"
+footer-setting = "footer-id"
+footer-pattern = 'Seite \d+ von \d+$'
+left-cm = 4.0
+right-cm = 3.0
+top-cm = 3.0
+bottom-cm = 2.0
+h1-pt = 16.0
+tolerance-mm = 1.0
+
+[rules."sat.layout.justified"]
+right-cm = 3.0
+tolerance-mm = 1.0
+normal-pt = 12.0
+text-fonts = ["Libre Franklin", "Franklin Gothic"]
+start-heading = "Einleitung"
+skipped-chapters = ["Literaturverzeichnis"]
+min-width-ratio = 0.6
+max-gap-em = 2.0
+
+[rules."sat.layout.margins"]
+left-cm = 4.0
+right-cm = 3.0
+top-cm = 3.0
+bottom-cm = 2.0
+page-width-cm = 21.0
+page-height-cm = 29.7
+tolerance-mm = 1.0
+
+[rules."sat.layout.page-numbers"]
+footer-pattern = 'Seite (\d+) von (\d+)\s*$'
+first-list-title = "Inhalt"
+first-list-page = 2
+
+[rules."sat.max-depth"]
+max-level = 2
+appendix-title = "Anhang"
+appendix-level = 4
+appendix-pattern = '^VS\d{3}'
+
+[rules."sat.outline"]
+chapters = [
+  "Einleitung",
+  "Methoden",
+  "Ergebnisse",
+  "Diskussion",
+  "Zusammenfassung",
+  "Literaturverzeichnis",
+  "Danksagungen",
+  "Eidesstattliche Erklärung",
+  "Anhang",
+]
+
+[rules."sat.paragraph-length"]
+max-chars = 400
+
+[rules."sat.pdf-commentable"]
+
+[rules."sat.sources-present"]
+
+[rules."sat.titlepage-date"]
+setting = "submitted-on"
+pattern = '\d{2}\.\d{2}\.\d{4}'
+date-format = "%d.%m.%Y"
+
+[rules."sat.wordcount"]
+max = 1700
+min-warn = 1530
+start-heading = "Einleitung"
+stop-heading = "Literaturverzeichnis"
+top-margin-cm = 3.0
+bottom-margin-cm = 2.0
+h1-pt = 16.0
+
+[rules."sat.wordcount-titlepage"]

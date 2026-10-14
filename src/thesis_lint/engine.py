@@ -103,9 +103,8 @@ def _rule_diagnostics(ctx: Context, rule_id: str, settings: RuleConfig) -> Itera
 
 def _diagnostic(ctx: Context, rule_id: str, settings: RuleConfig, finding: Finding) -> Diagnostic:
     severity = finding.severity or settings.severity
-    downgrade = (
-        ctx.profile is Profile.DRAFT and settings.rule.submission and severity is Severity.ERROR
-    )
+    submission = settings.rule.submission if finding.submission is None else finding.submission
+    downgrade = ctx.profile is Profile.DRAFT and submission and severity is Severity.ERROR
     return Diagnostic(
         rule_id, Severity.WARNING if downgrade else severity, finding.message, finding.location
     )

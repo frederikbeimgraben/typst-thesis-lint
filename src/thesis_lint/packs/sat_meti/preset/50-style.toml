@@ -1,1 +1,266 @@
 # Rule settings of the area "style".
+
+[rules."core.phrase.intro-cliche"]
+patterns = [
+  "Das\\s+Thema\\s+meiner\\s+Arbeit\\s+lautet",
+  "Diese[rs]?\\s+(?:Abschnitt|Kapitel)\\s+(?:beschäftigt|befasst)\\s+sich",
+]
+
+[rules."core.phrase.scope-excuse"]
+patterns = ["Rahmen\\s+(?:dieser|der)\\s+Arbeit"]
+
+[rules."core.placeholder"]
+markers = ["TODO", "XXX"]
+bracket-verbs = ["eintragen", "einfügen"]
+template-phrases = [
+  "ist dieser Abschnitt zu löschen",
+  "Diese Textvorlage wird als",
+  "Lorem ipsum",
+]
+
+[rules."core.style.bold-underline"]
+styles = ["strong", "underline"]
+
+[rules."core.style.emotional"]
+words = [
+  "unglaublich*",
+  "erfreulicherweise",
+  "leicht ersichtlich",
+  "leider",
+  "natürlich",
+  "selbstverständlich",
+  "automatisch",
+  "sehr",
+  "wichtig*",
+  "endlich",
+  "offensichtlich*",
+  "angeblich*",
+]
+
+[rules."core.style.false-superlative"]
+words = [
+  "optimalst*",
+  "einzigst*",
+  "bestmöglichst*",
+  "adäquatest*",
+  "maximalst*",
+  "minimalst*",
+  "idealst*",
+  "perfektest*",
+]
+
+[rules."core.style.filler"]
+words = [
+  "also",
+  "dann",
+  "auch",
+  "nun",
+  "gewissermaßen",
+  "sozusagen",
+  "eigentlich",
+]
+
+[rules."core.style.first-person"]
+words = [
+  "ich",
+  "mich",
+  "mir",
+  "mein",
+  "meine",
+  "meiner",
+  "meinem",
+  "meinen",
+  "meines",
+  "m. E.",
+]
+
+[rules."core.style.function-verb"]
+phrases = [
+  "unter Beweis",
+  "ist abhängig",
+  "sind abhängig",
+  "war abhängig",
+  "waren abhängig",
+]
+double-negation = true
+not-negations = [
+  "unbedingt",
+  "unter",
+  "unten",
+  "uns",
+  "unser*",
+  "ungefähr",
+  "und",
+  "um",
+]
+
+[rules."core.style.future-reference"]
+cues = [
+  "Kapitel",
+  "Abschnitt",
+  "Arbeit",
+  "im Folgenden",
+  "nachfolgend",
+  "im weiteren Verlauf",
+  "später",
+  "unten",
+  "anschließend",
+]
+verbs = [
+  "zeigen",
+  "untersuchen",
+  "betrachten",
+  "erläutern",
+  "darstellen",
+  "beschreiben",
+  "eingehen",
+  "vorstellen",
+  "behandeln",
+  "diskutieren",
+  "analysieren",
+  "erklären",
+  "beleuchten",
+  "aufzeigen",
+  "vertiefen",
+]
+
+[rules."core.style.gender-consistent"]
+
+[rules."core.style.generalization"]
+words = [
+  "generell",
+  "grundsätzlich",
+  "traditionell*",
+  "klassisch*",
+  "weltweit*",
+  "die Menschheit",
+  "schon immer",
+]
+
+[rules."core.style.long-parens"]
+max-words = 12
+
+[rules."core.style.man"]
+words = ["man"]
+
+[rules."core.style.modal-density"]
+max-per-100-words = 3.0
+min-words = 100
+modals = [
+  "kann",
+  "können",
+  "könnte",
+  "könnten",
+  "konnte",
+  "konnten",
+  "muss",
+  "müssen",
+  "müsste",
+  "müssten",
+  "musste",
+  "mussten",
+  "soll",
+  "sollen",
+  "sollte",
+  "sollten",
+  "darf",
+  "dürfen",
+  "dürfte",
+  "dürften",
+  "durfte",
+  "durften",
+  "will",
+  "wollen",
+  "wollte",
+  "wollten",
+  "mag",
+  "mögen",
+  "möchte",
+  "möchten",
+]
+
+[rules."core.style.paired-reference"]
+words = [
+  "auf der anderen Seite|auf der einen Seite",
+  "anschließend|zunächst",
+]
+
+[rules."core.style.passive-run"]
+run = 3
+not-participles = [
+  "gegen*",
+  "genug",
+  "gestern",
+  "gerade*",
+  "allgemein*",
+  "gemeinsam*",
+  "genau*",
+  "gering*",
+  "gesamt*",
+  "folgend*",
+  "eigen*",
+  "morgen*",
+  "übrigen*",
+  "wegen",
+  "bereit*",
+]
+
+[rules."core.style.platitude"]
+words = [
+  "nebenbei bemerkt",
+  "am Rande sei erwähnt",
+  "noch erwähnt sei",
+  "Mit Sicherheit lässt sich sagen",
+  "in der Überschrift",
+]
+
+[rules."core.style.reader-address"]
+words = ["Sie", "Ihnen", "Ihr", "Ihre", "Ihrem", "Ihren", "Ihrer", "Ihres"]
+
+[rules."core.style.restriction-exception"]
+triggers = [
+  "grundsätzlich",
+  "generell",
+  "i.d.R.",
+  "in der Regel",
+  "im Allgemeinen",
+]
+exceptions = ["außer", "es sei denn", "Ausnahme*", "ausgenommen", "abgesehen"]
+
+[rules."core.style.same-start"]
+run = 3
+
+[rules."core.style.sentence-length"]
+max-words = 25
+
+[rules."core.style.single-sentence-paragraph"]
+
+[rules."core.style.so-called"]
+words = ["sog.", "sogenannt*", "so genannt*"]
+
+[rules."core.style.subclauses"]
+max-subclauses = 2
+
+[rules."core.style.vague"]
+words = [
+  "größtenteils",
+  "meistens",
+  "enorm*",
+  "ziemlich",
+  "in etwa",
+  "möglicherweise",
+  "gewiss",
+  "fast",
+]
+
+[rules."core.style.we"]
+words = [
+  "wir",
+  "uns",
+  "unser",
+  "unsere",
+  "unserer",
+  "unserem",
+  "unseren",
+  "unseres",
+]

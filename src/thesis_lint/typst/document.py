@@ -227,6 +227,8 @@ class Figure:
     caption: Unit | None = None
     label: str | None = None
     body: Node | None = None
+    # The last order number that the figure uses (caption references, table cells).
+    end_order: int = 0
 
 
 @dataclass(slots=True)
@@ -332,7 +334,8 @@ class _Builder:
         byte = start_byte
         for char in text:
             width = len(char.encode("utf-8"))
-            if char.isspace() and char != " ":
+            # Keep the no-break spaces U+00A0 and U+202F. Rules check them.
+            if char.isspace() and char not in "\u00a0\u202f":
                 if not self._ends_with_space() and self._parts:
                     self._append(" ", byte)
             else:
@@ -493,7 +496,7 @@ class _Walker:
         candidates: list[tuple[int, _LabelSetter]] = []
         if self.document.figures:
             figure = self.document.figures[-1]
-            candidates.append((figure.order, _setter(figure)))
+            candidates.append((max(figure.order, figure.end_order), _setter(figure)))
         if self.document.equations:
             equation = self.document.equations[-1]
             candidates.append((equation.order, _setter(equation)))
@@ -649,6 +652,7 @@ class _Walker:
         self.document.figures.append(figure)
         if body is not None and body.type == "call" and call_name(body, source) == "table":
             self._table_cells(body, source)
+        figure.end_order = self.order
 
     def _table_cells(self, node: Node, source: SourceFile) -> None:
         for arg in positional_args(node):

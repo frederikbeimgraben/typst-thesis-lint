@@ -1,1 +1,50 @@
 # Rule settings of the area "abbreviations".
+
+[rules."core.abbrev.glossary"]
+allowed = [
+  "ISO",
+  "IEC",
+  "IEEE",
+  "EN",
+  "DIN",
+  "VDE",
+  "VDI",
+  "EU",
+  "USA",
+  "UK",
+  "GmbH",
+  "PDF",
+  "URL",
+  "DOI",
+  "ISBN",
+  "ISSN",
+  "TODO",
+  "XXX",
+]
+roman-numerals = true
+
+[rules."core.abbrev.raw-form"]
+
+[rules."core.abbrev.sentence-start"]
+abbreviations = [
+  "z.B.",
+  "d.h.",
+  "u.a.",
+  "bzw.",
+  "ggf.",
+  "bspw.",
+  "ca.",
+  "usw.",
+  "etc.",
+  "i.d.R.",
+  "u.U.",
+  "evtl.",
+  "insb.",
+  "sog.",
+  "z.T.",
+]
+acronyms = true
+
+[rules."core.abbrev.unused"]
+
+[rules."core.glossary.raw-term"]

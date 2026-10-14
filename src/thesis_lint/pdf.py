@@ -71,6 +71,7 @@ def compile_document(root: Path, main: Path, font_paths: list[Path], output: Pat
     if typst is None:
         msg = "the typst executable is not on PATH"
         raise CompileError(msg)
+    output.parent.mkdir(parents=True, exist_ok=True)
     command = [typst, "compile", "--root", str(root)]
     for path in font_paths:
         command.extend(["--font-path", str(path)])

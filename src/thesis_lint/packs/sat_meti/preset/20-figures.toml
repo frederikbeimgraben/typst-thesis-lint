@@ -1,1 +1,75 @@
 # Rule settings of the area "figures".
+# Each rule lists all its parameters with the value of the preset.
+
+[rules."core.figure.caption-label-ref"]
+
+[rules."core.figure.caption-period"]
+verbs = [
+  "ist",
+  "sind",
+  "war",
+  "waren",
+  "wird",
+  "werden",
+  "wurde",
+  "wurden",
+  "hat",
+  "haben",
+  "hatte",
+  "hatten",
+  "habe",
+  "bin",
+  "kann",
+  "können",
+  "konnte",
+  "muss",
+  "müssen",
+  "musste",
+  "soll",
+  "sollen",
+  "sollte",
+  "darf",
+  "dürfen",
+  "lässt",
+  "lassen",
+  "gibt",
+  "zeigt",
+  "zeigen",
+]
+
+[rules."core.figure.caption-position"]
+position = "bottom"
+
+[rules."core.figure.foreign-source"]
+patterns = [
+  '(?i)(?<!\w)Quelle(?!\w)',
+  '(?i)(?<!\w)in Anlehnung an(?!\w)',
+  '(?i)(?<!\w)übernommen(?!\w)',
+  '(?i)(?<!\w)verändert nach(?!\w)',
+  '(?<!\w)(?:[Nn]ach|[Aa]us) [A-ZÄÖÜ][\w.-]*(?: [A-ZÄÖÜ&][\w.-]*)* \(',
+]
+
+[rules."core.figure.numbering"]
+
+[rules."core.figure.own-figure"]
+patterns = ['\beigene[nrs]? (?:Darstellung|Abbildung|Erhebung|Grafik|Tabelle)']
+
+[rules."core.figure.ref-before"]
+
+[rules."core.figure.see-text"]
+patterns = ['\b(?:siehe|s\.|vgl\.)\s*(?:Text|Fließtext)\b']
+
+[rules."core.math.numbered"]
+
+[rules."core.ref.forward"]
+# Brink S. 195 allows forward references only as an exception. The outline
+# overview of the introduction is that exception.
+excluded-chapters = ["Einleitung"]
+
+[rules."core.table.footnote"]
+
+[rules."core.table.header-repeat"]
+
+[rules."core.table.single-column"]
+
+[rules."core.table.unit-brackets"]

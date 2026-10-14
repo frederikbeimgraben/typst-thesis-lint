@@ -1,3 +1,181 @@
 # Rule settings of the area "structure".
+# Each rule lists all its parameters with the value of the preset.
+
+[rules."core.appendix.referenced"]
+chapter = "Anhang"
+
+[rules."core.conclusion.apology"]
+chapter = "Zusammenfassung"
+patterns = [
+  '\bleider\b',
+  '\bkonnten?\b[^.!?]*\bnicht\b',
+  '\baus Zeitgründen\b',
+  '\bin der Kürze der Zeit\b',
+  '\b(?:wesentlich|wichtig|bedeutend|entscheidend|groß)\w*\s+(?:Fortschritt|Beitrag)',
+  '\bist (?:es )?gelungen\b',
+  '\berfolgreich (?:gezeigt|bewiesen|gelöst)\b',
+]
+
+[rules."core.heading.abbreviation"]
+
+[rules."core.heading.article-consistent"]
+articles = [
+  "der",
+  "die",
+  "das",
+  "des",
+  "dem",
+  "den",
+  "ein",
+  "eine",
+  "einer",
+  "eines",
+  "einem",
+  "einen",
+]
+outline-depth = 3
+
+[rules."core.heading.capital"]
+
+[rules."core.heading.citation"]
+
+[rules."core.heading.duplicate"]
+
+[rules."core.heading.evaluative"]
+words = [
+  "erfolgreich",
+  "Erfolgsfaktor",
+  "notwendig",
+  "Notwendigkeit",
+  "optimal",
+  "ideal",
+  "perfekt",
+  "hervorragend",
+  "gelungen",
+  "unverzichtbar",
+  "unerlässlich",
+  "mangelhaft",
+  "schlecht",
+  "vorbildlich",
+  "überragend",
+  "beste",
+  "bessere",
+]
+
+[rules."core.heading.first-person"]
+words = [
+  "ich",
+  "mich",
+  "mir",
+  "mein",
+  "meine",
+  "meiner",
+  "meines",
+  "meinem",
+  "meinen",
+]
+
+[rules."core.heading.max-siblings"]
+max-siblings = 6
+outline-depth = 3
 
 [rules."core.heading.min-children"]
+outline-depth = 3
+
+[rules."core.heading.numbering-format"]
+
+[rules."core.heading.other-misc"]
+misc-words = [
+  "Weitere",
+  "Weiterer",
+  "Weiteres",
+  "Sonstige",
+  "Sonstiger",
+  "Sonstiges",
+]
+min-before = 2
+forbidden = ["Exkurs"]
+outline-depth = 3
+
+[rules."core.heading.placeholder-first"]
+words = ["Vorbemerkung", "Vorbemerkungen", "Einführung", "Überblick"]
+outline-depth = 3
+
+[rules."core.heading.punctuation"]
+characters = "?.:;!–—"
+
+[rules."core.heading.quotes"]
+
+[rules."core.heading.repeats-parent"]
+min-length = 5
+
+[rules."core.heading.suspense"]
+phrases = ["Was nun", "Zum Schluss", "…"]
+
+[rules."core.heading.unnumbered"]
+exempt-chapter = "Anhang"
+exempt-level = 4
+
+[rules."core.heading.verb"]
+words = [
+  "ist",
+  "sind",
+  "war",
+  "waren",
+  "wird",
+  "werden",
+  "wurde",
+  "wurden",
+  "hat",
+  "haben",
+  "hatte",
+  "hatten",
+  "habe",
+  "bin",
+  "kann",
+  "können",
+  "konnte",
+  "muss",
+  "müssen",
+  "musste",
+  "soll",
+  "sollen",
+  "sollte",
+  "darf",
+  "dürfen",
+  "lässt",
+  "lassen",
+  "gibt",
+  "zeigt",
+  "zeigen",
+]
+
+[rules."core.intro.no-figure"]
+chapter = "Einleitung"
+
+[rules."core.list.consistent"]
+excluded-chapters = ["Eidesstattliche Erklärung"]
+
+[rules."core.list.punctuation"]
+excluded-chapters = ["Eidesstattliche Erklärung"]
+
+[rules."core.list.share"]
+max-share = 0.5
+excluded-chapters = ["Eidesstattliche Erklärung"]
+
+[rules."core.section.balance"]
+chapters = ["Methoden", "Ergebnisse", "Diskussion"]
+max-factor = 3.0
+
+[rules."core.section.min-sentences"]
+min-sentences = 3
+excluded-chapters = [
+  "Literaturverzeichnis",
+  "Danksagungen",
+  "Eidesstattliche Erklärung",
+  "Anhang",
+]
+
+[rules."core.section.preamble"]
+max-sentences = 2
+outline-depth = 3

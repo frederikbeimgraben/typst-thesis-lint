@@ -24,11 +24,16 @@ NO_PARAMS = NoParams()
 
 @dataclass(frozen=True, slots=True)
 class Finding:
-    """One result of a check. If `severity` is set, it replaces the configured severity."""
+    """One result of a check.
+
+    If `severity` is set, it replaces the configured severity. If `submission` is set,
+    it replaces the submission flag of the rule for this finding only.
+    """
 
     message: str
     location: Location
     severity: Severity | None = None
+    submission: bool | None = None
 
 
 type CheckFn[P] = Callable[[Context, P], Iterable[Finding]]

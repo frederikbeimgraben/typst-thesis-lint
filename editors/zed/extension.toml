@@ -1,0 +1,11 @@
+id = "thesis-lint"
+name = "Thesis Lint"
+version = "0.1.0"
+schema_version = 1
+authors = ["Frederik Beimgraben <frederik@beimgraben.net>"]
+description = "Diagnostics of typst-thesis-lint for Typst papers and theses"
+repository = "https://github.com/frederikbeimgraben/typst-thesis-lint"
+
+[language_servers.thesis-lint]
+name = "thesis-lint"
+languages = ["Typst"]
