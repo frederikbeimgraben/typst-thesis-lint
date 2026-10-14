@@ -211,3 +211,16 @@ def test_software(tmp_path: Path) -> None:
     assert check(tmp_path, "core.cite.software", body) == []
     findings = check(tmp_path, "core.cite.software", body, terms=["Python"])
     assert len(findings) == 1
+
+
+def test_software_accepts_a_reference_to_the_tool_list(tmp_path: Path) -> None:
+    body = (
+        "= Werkzeuge <sec:werkzeuge>\n\nDie Suche nutzte Consensus (@sec:werkzeuge).\n\n"
+        + "Consensus half.\n"
+    )
+    ctx = make_context(tmp_path, body, lint_toml="")
+    findings = run_rule(
+        ctx, "core.cite.software", terms=["Consensus"], tool_labels=["sec:werkzeuge"]
+    )
+    assert len(findings) == 1
+    assert findings[0].location.line == 5

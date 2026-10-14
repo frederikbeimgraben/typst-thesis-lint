@@ -50,6 +50,7 @@ ignore = [
   "RUF003",
   "PLR2004", # thresholds are named rule parameters, literals in tests are fine
   "CPY001",  # the MIT license applies to the whole repository
+  "ISC003",  # basedpyright forbids implicit concatenation, so "+" is necessary
 ]
 
 [tool.ruff.lint.mccabe]

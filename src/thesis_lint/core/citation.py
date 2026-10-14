@@ -782,9 +782,14 @@ def foreign_quote(ctx: Context, params: ForeignQuoteParams) -> Iterator[Finding]
 
 @dataclass(frozen=True, slots=True)
 class SoftwareParams:
-    """Parameters of `core.cite.software`. The project config gives the terms."""
+    """Parameters of `core.cite.software`. The project config gives the terms.
+
+    A reference to a label in `tool_labels`, for example a list of tools in the
+    appendix, also counts as a source.
+    """
 
     terms: tuple[str, ...] = ()
+    tool_labels: tuple[str, ...] = ()
 
 
 @rule(
@@ -795,22 +800,33 @@ class SoftwareParams:
     params=SoftwareParams(),
 )
 def software(ctx: Context, params: SoftwareParams) -> Iterator[Finding]:
-    """Report sentences with a configured term and without a citation."""
+    """Report sentences with a configured term and without a citation or tool reference."""
     if not params.terms:
         return
     alternatives = "|".join(map(re.escape, sorted(params.terms, key=len, reverse=True)))
     pattern = re.compile(rf"(?<!\w)(?:{alternatives})(?!\w)")
-    for unit in body_units(ctx):
-        text = unquoted(unit)
-        for sentence in sentences(unit):
-            match = pattern.search(text, sentence.start, sentence.end)
-            if match is not None and not sentence_citations(ctx, sentence):
-                yield Finding(
-                    " ".join(
-                        (
-                            f"the sentence names {match.group(0)!r} but cites no source for it.",
-                            "Add a citation.",
-                        )
-                    ),
-                    unit.location(match.start(), match.end()),
+    yield from (
+        Finding(
+            " ".join(
+                (
+                    f"the sentence names {match.group(0)!r} but cites no source for it.",
+                    "Add a citation or a reference to the list of tools.",
                 )
+            ),
+            unit.location(match.start(), match.end()),
+        )
+        for unit in body_units(ctx)
+        for text in (unquoted(unit),)
+        for sentence in sentences(unit)
+        if (match := pattern.search(text, sentence.start, sentence.end)) is not None
+        and not sentence_citations(ctx, sentence)
+        and not _refers_to_tools(sentence, params.tool_labels)
+    )
+
+
+def _refers_to_tools(sentence: Sentence, labels: tuple[str, ...]) -> bool:
+    """Return True if the sentence refers to one of the labels of the tool list."""
+    return any(
+        reference.key in labels and sentence.start <= reference.span.start < sentence.end
+        for reference in sentence.unit.references
+    )

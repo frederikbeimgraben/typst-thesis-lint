@@ -306,6 +306,7 @@ A sentence that names software or a data set from the config cites it.
 - Default severity: warning
 - Input: source
 - Parameter `terms`: `()`
+- Parameter `tool-labels`: `()`
 - Source: DFG 2022, Leitlinien zur Sicherung guter wissenschaftlicher Praxis, Leitlinie 7
 
 ### `core.cite.statistics`

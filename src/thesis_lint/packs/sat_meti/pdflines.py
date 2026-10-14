@@ -35,6 +35,8 @@ H1_PT = 16.0
 H2_PT = 14.0
 LISTS_PT = 10.0
 HEADER_PT = 10.0
+# A gap between two heading lines below this share of the font size is a line wrap.
+WRAP_GAP_FACTOR = 0.5
 FOOTER_PT = 10.0
 FOOTNOTE_PT = 10.0
 ABSTRACT_PT = 10.0
@@ -268,10 +270,21 @@ def chapter_headings(
             if line.region is Region.BODY:
                 previous = None
             continue
-        if previous is None or previous.page != line.page:
+        if not _wraps(previous, line):
             result.append(line)
         previous = line
     return result
+
+
+def _wraps(previous: Line | None, line: Line) -> bool:
+    """Return True if `line` continues the heading `previous` after a line wrap.
+
+    Two headings in a row, for example two empty lists, have a larger gap than
+    the lines of one wrapped heading.
+    """
+    if previous is None or previous.page != line.page:
+        return False
+    return line.top - previous.bottom < WRAP_GAP_FACTOR * line.size
 
 
 def find_heading(

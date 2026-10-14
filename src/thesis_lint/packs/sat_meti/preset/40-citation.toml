@@ -93,8 +93,10 @@ min-share = 0.2
 min-words = 4
 
 [rules."core.cite.software"]
-# The project config gives the software and data set names.
+# The project config gives the software and data set names, and the labels
+# of a list of tools that counts as a source.
 terms = []
+tool-labels = []
 
 [rules."core.plagiarism.ngram"]
 n = 6

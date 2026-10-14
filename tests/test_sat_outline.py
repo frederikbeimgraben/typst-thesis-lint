@@ -97,3 +97,15 @@ def test_declaration_reports_a_changed_text(tmp_path: Path) -> None:
     found = messages(run_rule(make_context(tmp_path, text), "sat.declaration"))
     assert len(found) == 1
     assert "falsche" in found[0]
+
+
+def test_directories_finds_empty_lists_in_a_row() -> None:
+    from tests.test_sat_pdf import FIXTURE  # noqa: PLC0415 - shared fixture path
+    from thesis_lint.packs.sat_meti import pdflines  # noqa: PLC0415 - test only
+    from thesis_lint.pdf import read_pdf  # noqa: PLC0415 - test only
+
+    titles = {
+        pdflines.normalize(line.title) for line in pdflines.chapter_headings(read_pdf(FIXTURE))
+    }
+    expected = ("Tabellenverzeichnis", "Formelverzeichnis", "Abkürzungsverzeichnis", "Glossar")
+    assert {pdflines.normalize(title) for title in expected} <= titles
