@@ -25,7 +25,12 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class WordcountParams:
-    """Parameters of `sat.wordcount`. `sat.wordcount-titlepage` uses them too."""
+    """Parameters of `sat.wordcount`. `sat.wordcount-titlepage` uses them too.
+
+    `count_tables` and `count_citations` select if table cells and citations in
+    parentheses count as words. A table cell is a body line with the font size
+    `table_pt`.
+    """
 
     max: int = 1700
     min_warn: int = 1530
@@ -34,6 +39,9 @@ class WordcountParams:
     top_margin_cm: float = pdflines.TOP_CM
     bottom_margin_cm: float = pdflines.BOTTOM_CM
     h1_pt: float = pdflines.H1_PT
+    count_tables: bool = False
+    count_citations: bool = False
+    table_pt: float = pdflines.LISTS_PT
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +57,7 @@ def measure(pdf: PdfDocument, params: WordcountParams) -> Measured:
 
     The count uses the body lines only. Header, footer and page numbers do not
     count. A heading number in front of the heading text does not count.
+    Table cells and citations count only if the parameters select them.
     """
     start = pdflines.find_heading(pdf, params.start_heading, params.h1_pt)
     if start is None:
@@ -57,16 +66,40 @@ def measure(pdf: PdfDocument, params: WordcountParams) -> Measured:
     lines = pdflines.lines_between(
         pdf, start, stop, top_cm=params.top_margin_cm, bottom_cm=params.bottom_margin_cm
     )
+    if not params.count_tables:
+        lines = [line for line in lines if not line.has_size(params.table_pt)]
     text = pdflines.join_lines(
         dataclasses.replace(line, text=pdflines.heading_number_free(line)) for line in lines
     )
+    if not params.count_citations:
+        text = citation_free(text)
     problem = None if stop is not None else f"cannot find the heading {params.stop_heading!r}"
     return Measured(pdflines.count_words(text), problem)
 
 
+# A citation is a group in parentheses with a year in front of a comma or the
+# closing parenthesis, for example `(Ji et al., 2023)` or `(2020, S. 9459)`.
+# The group can contain one more level of parentheses.
+_CITATION = re.compile(
+    r"\((?:[^()]|\([^()]*\))*?\b(?:1[89]|20)\d{2}[a-z]?(?=[,;)])(?:[^()]|\([^()]*\))*\)"
+)
+
+
+def citation_free(text: str) -> str:
+    """Return the text without the citations in parentheses.
+
+    The author names of a citation in the sentence stay, for example
+    `Lewis et al.` in `Lewis et al. (2020, S. 9459)`.
+    """
+    return _CITATION.sub(" ", text)
+
+
 @rule(
     "sat.wordcount",
-    summary="The text from the introduction up to the bibliography has 1530 to 1700 words.",
+    summary=(
+        "The text from the introduction up to the bibliography has 1530 to 1700 words. "
+        "Table cells and citations in parentheses do not count."
+    ),
     severity=Severity.ERROR,
     sources=[
         ref(SAT, "S. 11", "1700 Wörter; der Umfang muss eingehalten werden!"),

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from tests.helpers import make_context, messages, run_rule
 from tests.test_sat_pdf import example_pdf, heading_line, text_line, transform, use_pdf
 from thesis_lint.model import Severity
+from thesis_lint.packs.sat_meti.wordcount import citation_free
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -12,7 +13,10 @@ if TYPE_CHECKING:
     from thesis_lint.pdf import PdfChar, PdfPage
 
 # The word count of the example PDF from "Einleitung" up to "Literaturverzeichnis".
-EXAMPLE_WORDS = 226
+# Table cells and citations in parentheses do not count.
+EXAMPLE_WORDS = 200
+# The same range with the table cells and the citations.
+ALL_WORDS = 226
 BODY = "= Einleitung\n\nText.\n\n= Literaturverzeichnis\n"
 
 
@@ -27,11 +31,42 @@ def test_wordcount_accepts_a_count_in_range(tmp_path: Path) -> None:
 
 def test_wordcount_reports_too_many_words(tmp_path: Path) -> None:
     ctx = use_pdf(make_context(tmp_path, BODY), example_pdf())
-    findings = run_rule(ctx, "sat.wordcount", max=200)
+    findings = run_rule(ctx, "sat.wordcount", max=180)
     assert messages(findings) == [
-        f"the text has {EXAMPLE_WORDS} words. The maximum is 200. Remove 26 words"
+        f"the text has {EXAMPLE_WORDS} words. The maximum is 180. Remove 20 words"
     ]
     assert findings[0].severity is None
+
+
+def test_wordcount_counts_tables_and_citations_on_request(tmp_path: Path) -> None:
+    ctx = use_pdf(make_context(tmp_path, BODY), example_pdf())
+    findings = run_rule(
+        ctx, "sat.wordcount", max=200, min_warn=100, count_tables=True, count_citations=True
+    )
+    assert messages(findings) == [
+        f"the text has {ALL_WORDS} words. The maximum is 200. Remove 26 words"
+    ]
+
+
+def test_citation_free_removes_citations_only() -> None:
+    text = "Lewis et al. (2020, S. 9459) (Tabelle 3.1) und (EU) (Ji et al., 2023; Es, 2024a) Ende"
+    assert citation_free(text).split() == [
+        "Lewis",
+        "et",
+        "al.",
+        "(Tabelle",
+        "3.1)",
+        "und",
+        "(EU)",
+        "Ende",
+    ]
+
+
+def test_citation_free_accepts_parentheses_in_a_citation() -> None:
+    assert citation_free("Text (Verordnung (EU) 2017/745, 2017, S. 103) Ende").split() == [
+        "Text",
+        "Ende",
+    ]
 
 
 def test_wordcount_warns_about_too_few_words(tmp_path: Path) -> None:
