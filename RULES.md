@@ -1750,7 +1750,7 @@ The submission date on the title page has the format DD.MM.YYYY.
 
 ### `sat.wordcount`
 
-The text from the introduction up to the bibliography has 1530 to 1700 words.
+The text from the introduction up to the bibliography has 1530 to 1700 words. Table cells and citations in parentheses do not count.
 
 - Default severity: error
 - Input: pdf
@@ -1762,6 +1762,9 @@ The text from the introduction up to the bibliography has 1530 to 1700 words.
 - Parameter `top-margin-cm`: `3.0`
 - Parameter `bottom-margin-cm`: `2.0`
 - Parameter `h1-pt`: `16.0`
+- Parameter `count-tables`: `False`
+- Parameter `count-citations`: `False`
+- Parameter `table-pt`: `10.0`
 - Source: SAT-Richtlinie meti, Version 10.0, S. 11: „1700 Wörter; der Umfang muss eingehalten werden!“
 - Source: SAT-Richtlinie meti, Version 10.0, S. 11 f.: „Gezählt werden die Wörter vom Anfang Ihres Textes (ab Einleitung) bis zum Beginn“
 
